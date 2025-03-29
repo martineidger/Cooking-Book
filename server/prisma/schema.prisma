@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  username     String         @unique
+  email        String         @unique
+  password     String
+  recipes      Recipe[]
+  Subscription Subscription[]
+}
+
+model Recipe {
+  id          String               @id @default(uuid())
+  title       String
+  description String?
+  phases      CookingPhase[]
+  userId      String
+  ingredients IngredientOnRecipe[]
+  cuisine     Cuisine?             @relation(fields: [cuisineId], references: [id])
+  cuisineId   String?
+  categories  CategoryOnRecipe[]
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model CookingPhase {
+  id          String        @id @default(uuid())
+  recipeId    String
+  title       String
+  durationMin Int
+  steps       CookingStep[]
+
+  recipe Recipe @relation(fields: [recipeId], references: [id])
+}
+
+model CookingStep {
+  id          String  @id @default(uuid())
+  phaseId     String
+  description String?
+  image       String?
+  order       Int
+  durationMin Int
+
+  phase CookingPhase @relation(fields: [phaseId], references: [id])
+}
+
+model Ingredient {
+  id                   String               @id @default(uuid())
+  name                 String               @unique
+  category             IngredientCategory   @relation(fields: [ingredientCategoryId], references: [id])
+  recipes              IngredientOnRecipe[]
+  ingredientCategoryId String
+}
+
+model IngredientCategory {
+  id         String       @id @default(uuid())
+  name       String       @unique
+  Ingredient Ingredient[]
+}
+
+model IngredientOnRecipe {
+  id           String         @id @default(uuid())
+  recipeId     String
+  ingredientId String
+  quantity     Float
+  unit         IngredientUnit @relation(fields: [ingredientUnitId], references: [id])
+
+  recipe           Recipe     @relation(fields: [recipeId], references: [id])
+  ingredient       Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredientUnitId String
+}
+
+model IngredientUnit {
+  id   String @id @default(uuid())
+  name String @unique
+
+  IngredientOnRecipe IngredientOnRecipe[]
+}
+
+model Cuisine {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  recipes Recipe[]
+}
+
+model Category {
+  id           String             @id @default(uuid())
+  name         String             @unique
+  recipes      CategoryOnRecipe[]
+  Subscription Subscription[]
+}
+
+model CategoryOnRecipe {
+  id         String @id @default(uuid())
+  recipeId   String
+  categoryId String
+
+  recipe   Recipe   @relation(fields: [recipeId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+model Subscription {
+  id         String @id @default(uuid())
+  userId     String
+  categoryId String
+
+  user     User     @relation(fields: [userId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+}
