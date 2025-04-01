@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateRecipeDto } from './dto/create-recipe.dto';
-import { UpdateRecipeDto } from './dto/update-recipe.dto';
+import { CreateRecipeDto } from '../dto/recipe/create-recipe.dto';
+import { UpdateRecipeDto } from '../dto/recipe/update-recipe.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { Recipe } from '@prisma/client';
 
@@ -10,7 +10,30 @@ export class RecipeService {
 
   async create(createRecipeDto: CreateRecipeDto): Promise<Recipe> {
     return this.prisma.recipe.create({
-      data: createRecipeDto,
+      data: {
+        user: { connect: { id: createRecipeDto.userId } },
+        title: createRecipeDto.title,
+        cuisine: { connect: { id: createRecipeDto.cuisineId } },
+        description: createRecipeDto.description,
+        categories: {
+          connect: createRecipeDto.categories?.map(cat => ({
+            id: cat.categoryId
+          })) || [],
+        },
+        ingredients: {
+          connect: createRecipeDto.ingredients?.map(ingr => ({
+            id: ingr.ingredientId
+          })) || [],
+        },
+        steps: {
+          create: createRecipeDto.steps?.map(step => ({
+            title: step.title,
+            description: step.description,
+            order: step.order,
+            durationMin: step.durationMin || 0,
+          })) || [],
+        },
+      },
     });
   }
 
@@ -48,7 +71,7 @@ export class RecipeService {
     });
   }
 
-  async findOne(id: number): Promise<Recipe | null> {
+  async findOne(id: string): Promise<Recipe | null> {
     return this.prisma.recipe.findUnique({
       where: { id: id.toString() },
       include: {
@@ -59,14 +82,52 @@ export class RecipeService {
     });
   }
 
-  async update(id: number, updateRecipeDto: UpdateRecipeDto): Promise<Recipe> {
+  // async update(id: number, updateRecipeDto: UpdateRecipeDto): Promise<Recipe> {
+  //   return this.prisma.recipe.update({
+  //     where: { id: id.toString() },
+  //     data: updateRecipeDto,
+  //   });
+  // }
+
+  async update(id: string, updateRecipeDto: UpdateRecipeDto): Promise<Recipe> {
     return this.prisma.recipe.update({
-      where: { id: id.toString() },
-      data: updateRecipeDto,
+      where: { id },
+      data: {
+        ...(updateRecipeDto.title && { title: updateRecipeDto.title }), // Update title if provided
+        ...(updateRecipeDto.description && { description: updateRecipeDto.description }), // Update description if provided
+        ...(updateRecipeDto.cuisineId && { cuisine: { connect: { id: updateRecipeDto.cuisineId } } }), // Update cuisine if provided
+        categories: {
+          connect: updateRecipeDto.categories?.map(cat => ({
+            id: cat.categoryId
+          })) || [],
+          disconnect: updateRecipeDto.categoriesToDisconnect?.map(catId => ({
+            id: catId
+          })) || [],
+        },
+        ingredients: {
+          connect: updateRecipeDto.ingredients?.map(ingr => ({
+            id: ingr.ingredientId
+          })) || [],
+          disconnect: updateRecipeDto.ingredientsToDisconnect?.map(ingrId => ({
+            id: ingrId
+          })) || [],
+        },
+        steps: {
+          deleteMany: updateRecipeDto.stepsToDelete?.map(stepId => ({
+            id: stepId
+          })) || [],
+          create: updateRecipeDto.steps?.map(step => ({
+            title: step.title,
+            description: step.description,
+            order: step.order,
+            durationMin: step.durationMin || 0,
+          })) || [],
+        },
+      },
     });
   }
 
-  async remove(id: number): Promise<Recipe> {
+  async remove(id: string): Promise<Recipe> {
     return this.prisma.recipe.delete({
       where: { id: id.toString() },
     });
