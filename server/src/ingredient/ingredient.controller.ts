@@ -3,6 +3,7 @@ import { IngredientService } from './ingredient.service';
 import { CreateIngredientDto } from 'src/dto/ingredient/create-ingredient.dto';
 import { Ingredient, IngredientCategory, IngredientUnit } from '@prisma/client';
 import { CreateBaseElement } from 'src/dto/base/create-base-element.dto';
+import { CreateIngredientUnitDto } from 'src/dto/ingredient/create-ingredient-unit.dto';
 
 @Controller('ingredients')
 export class IngredientController {
@@ -14,7 +15,7 @@ export class IngredientController {
   }
 
   @Post('unit')
-  async createUnit(@Body() createUnitDto: CreateBaseElement): Promise<IngredientUnit> {
+  async createUnit(@Body() createUnitDto: CreateIngredientUnitDto): Promise<IngredientUnit> {
     return this.ingredientService.createUnit(createUnitDto);
   }
 
@@ -23,5 +24,18 @@ export class IngredientController {
     return this.ingredientService.create(createIngredientDto);
   }
 
+  @Get('category')
+  async findAllCategories() {
+    return await this.ingredientService.findAllCategories();
+  }
 
+  @Get('unit')
+  async findAllUnits() {
+    return await this.ingredientService.findAllUnits();
+  }
+
+  @Get()
+  async findAll() {
+    return await this.ingredientService.findAll();
+  }
 }

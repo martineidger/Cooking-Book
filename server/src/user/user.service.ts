@@ -18,6 +18,16 @@ export class UserService {
     return await this.prisma.user.findMany()
   }
 
+  async findOneByEmail(email: string) {
+    return await this.prisma.user.findUnique({
+      where: { email: email },
+      include: {
+        recipes: true,
+        subscriptions: true
+      }
+    })
+  }
+
   async findOne(id: string) {
     return await this.prisma.user.findUnique({
       where: { id: id },
@@ -35,7 +45,7 @@ export class UserService {
     // })
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     return `This action removes a #${id} user`;
   }
 }
