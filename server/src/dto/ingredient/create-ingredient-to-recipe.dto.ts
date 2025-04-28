@@ -5,9 +5,9 @@ export class CreateIngredientToRecipeDto {
     @IsNotEmpty()
     ingredientId: string;
 
-    @IsString()
-    @IsNotEmpty()
-    recipeId: string;
+    // @IsString()
+    // @IsNotEmpty()
+    // recipeId: string;
 
     @IsNumber()
     @IsNotEmpty()

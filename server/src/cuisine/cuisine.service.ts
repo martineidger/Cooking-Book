@@ -13,11 +13,13 @@ export class CuisineService {
   }
 
   findAll() {
-    return `This action returns all cuisine`;
+    return this.prisma.recipe.findMany();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} cuisine`;
+    return this.prisma.cuisine.findUnique({
+      where: { id: id.toString() },
+    });
   }
 
   // update(id: number, updateCuisineDto: UpdateCuisineDto) {
@@ -25,6 +27,8 @@ export class CuisineService {
   // }
 
   remove(id: number) {
-    return `This action removes a #${id} cuisine`;
+    return this.prisma.cuisine.delete({
+      where: { id: id.toString() },
+    });
   }
 }

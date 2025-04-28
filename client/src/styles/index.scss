@@ -1,0 +1,99 @@
+@use 'login.scss';
+@use 'mainPage.scss';
+@use 'header.scss';
+@use 'recipeCard.scss';
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Inter", sans-serif;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+main {
+    padding: 20px;
+
+    h1 {
+        font-size: 24px;
+        color: #252525;
+    }
+
+    .main-browse {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 14px;
+        margin: 20px 0 40px;
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e3e3e3;
+            border-radius: 8px;
+            font-size: 14px;
+            height: 36px;
+        }
+
+        button {
+            height: 36px;
+            padding: 3px 20px;
+            background-color: #10692e;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+        }
+    }
+
+    .card-wrapper {
+        display: flex;
+        justify-content: center;
+    }
+
+    .my-masonry-grid {
+        display: flex;
+        justify-content: center;
+        width: 96%;
+    }
+
+    .my-masonry-grid_column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .recipe-card {
+        cursor: pointer;
+        border: none;
+
+        img {
+            width: 300px;
+            height: auto;
+            display: block;
+            border-radius: 18px;
+        }
+
+        span {
+            font-size: 20px;
+            color: #000;
+        }
+    }
+}

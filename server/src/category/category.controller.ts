@@ -1,25 +1,36 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CategoryService } from './category.service';
 //import { UpdateCategoryDto } from '../dto/category/update-category.dto';
 import { CreateBaseElement } from 'src/dto/base/create-base-element.dto';
+import { CreateSubscriptionDto } from 'src/dto/subscription/create-subscription.dto';
+import { Subscription } from '@prisma/client';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('categories')
+@Public()
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) { }
 
+  @Post('subscribe')
+  async createSubscription(
+    @Query('categoryId') categoryId: string, @Query('userId') userId: string
+  ): Promise<Subscription> {
+    return await this.categoryService.createSubscription(categoryId, userId);
+  }
+
   @Post()
-  create(@Body() createCategoryDto: CreateBaseElement) {
-    return this.categoryService.create(createCategoryDto);
+  async create(@Body() createCategoryDto: CreateBaseElement) {
+    return await this.categoryService.create(createCategoryDto);
   }
 
   @Get()
-  findAll() {
-    return this.categoryService.findAll();
+  async findAll() {
+    return await this.categoryService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoryService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.categoryService.findOne(id);
   }
 
   // @Patch(':id')
@@ -28,7 +39,7 @@ export class CategoryController {
   // }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoryService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.categoryService.remove(id);
   }
 }

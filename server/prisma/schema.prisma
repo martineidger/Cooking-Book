@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,8 +12,15 @@ model User {
   username      String         @unique
   email         String         @unique
   password      String
+  role          Role           @default(User)
   recipes       Recipe[]
   subscriptions Subscription[]
+  notes         Note[]
+}
+
+enum Role {
+  Admin
+  User
 }
 
 model Recipe {
@@ -29,11 +30,15 @@ model Recipe {
   steps       CookingStep[]
   userId      String
   ingredients IngredientOnRecipe[]
+  portions    Int
   cuisine     Cuisine?             @relation(fields: [cuisineId], references: [id])
   cuisineId   String?
   categories  CategoryOnRecipe[]
 
-  user User @relation(fields: [userId], references: [id])
+  user  User   @relation(fields: [userId], references: [id])
+  notes Note[]
+
+  @@unique([userId, title])
 }
 
 model CookingStep {
@@ -50,11 +55,13 @@ model CookingStep {
 }
 
 model Ingredient {
-  id                   String               @id @default(uuid())
-  name                 String               @unique
+  id   String @id @default(uuid())
+  name String @unique
+
+  ingredientCategoryId String
+  allergens            IngredientAllergen[]
   category             IngredientCategory   @relation(fields: [ingredientCategoryId], references: [id])
   recipes              IngredientOnRecipe[]
-  ingredientCategoryId String
 }
 
 model IngredientCategory {
@@ -64,33 +71,38 @@ model IngredientCategory {
 }
 
 model IngredientOnRecipe {
-  id           String         @id @default(uuid())
-  recipeId     String
-  ingredientId String
-  quantity     Float
-  unit         IngredientUnit @relation(fields: [ingredientUnitId], references: [id])
-
-  recipe           Recipe     @relation(fields: [recipeId], references: [id])
-  ingredient       Ingredient @relation(fields: [ingredientId], references: [id])
+  id               String  @id @default(uuid())
+  recipeId         String?
+  ingredientId     String
+  quantity         Float
   ingredientUnitId String
+
+  unit       IngredientUnit @relation(fields: [ingredientUnitId], references: [id])
+  recipe     Recipe?        @relation(fields: [recipeId], references: [id])
+  ingredient Ingredient     @relation(fields: [ingredientId], references: [id])
+
+  @@unique([recipeId, ingredientId])
 }
 
 model IngredientUnit {
-  id   String @id @default(uuid())
-  name String @unique
+  id          String @id @default(uuid())
+  name        String @unique
+  gramsAmount Float
 
   IngredientOnRecipe IngredientOnRecipe[]
 }
 
 model Cuisine {
-  id      String   @id @default(uuid())
-  name    String   @unique
+  id   String @id @default(uuid())
+  name String @unique
+
   recipes Recipe[]
 }
 
 model Category {
-  id           String             @id @default(uuid())
-  name         String             @unique
+  id   String @id @default(uuid())
+  name String @unique
+
   recipes      CategoryOnRecipe[]
   Subscription Subscription[]
 }
@@ -102,6 +114,8 @@ model CategoryOnRecipe {
 
   recipe   Recipe   @relation(fields: [recipeId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([recipeId, categoryId])
 }
 
 model Subscription {
@@ -111,4 +125,38 @@ model Subscription {
 
   user     User     @relation(fields: [userId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
+}
+
+model Allergen {
+  id          String               @id @default(uuid())
+  name        String               @unique
+  severity    Severity             @default(Trace)
+  ingredients IngredientAllergen[]
+}
+
+model IngredientAllergen {
+  id             String     @id @default(uuid())
+  ingredient     Ingredient @relation(fields: [ingredientId], references: [id])
+  allergen       Allergen   @relation(fields: [allergenId], references: [id])
+  ingredientId   String
+  allergenId     String
+  customSeverity Severity? // Переопределение серьёзности для конкретного ингредиента
+}
+
+enum Severity {
+  Trace // Следы (например, "может содержать следы орехов")
+  Low // Незначительное количество
+  Moderate // Умеренное (например, соус с молоком)
+  High // Высокое (например, цельные орехи)
+}
+
+model Note {
+  id       String  @id @default(uuid())
+  text     String
+  isPublic Boolean
+  userId   String
+  recipeId String
+
+  user   User   @relation(fields: [userId], references: [id])
+  recipe Recipe @relation(fields: [recipeId], references: [id])
 }

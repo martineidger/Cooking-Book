@@ -14,18 +14,31 @@ export class CategoryService {
   }
 
   findAll() {
-    return `This action returns all category`;
+    return this.prisma.category.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  findOne(id: string) {
+    return this.prisma.category.findUnique({
+      where: { id: id }
+    })
   }
 
   // update(id: number, updateCategoryDto: UpdateCategoryDto) {
   //   return `This action updates a #${id} category`;
   // }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: string) {
+    return this.prisma.category.delete({
+      where: { id: id.toString() },
+    });
+  }
+
+  async createSubscription(categoryId: string, userId: string) {
+    return await this.prisma.subscription.create({
+      data: {
+        category: { connect: { id: categoryId } },
+        user: { connect: { id: userId } }
+      }
+    })
   }
 }

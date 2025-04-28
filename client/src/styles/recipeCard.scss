@@ -1,0 +1,100 @@
+.recipe-card {
+    width: 300px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    background: white;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-5px);
+    }
+}
+
+.recipe-image-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+}
+
+.recipe-image {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    transition: opacity 0.5s ease;
+}
+
+.show-ingredients .recipe-image {
+    opacity: 0.2;
+}
+
+.ingredients-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    overflow-y: auto;
+
+    h4 {
+        margin-top: 0;
+        color: #333;
+        font-size: 16px;
+    }
+}
+
+.show-ingredients .ingredients-overlay {
+    opacity: 1;
+}
+
+.ingredients-list {
+    padding-left: 20px;
+    margin: 10px 0 0;
+    color: #555;
+
+    li {
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+}
+
+.recipe-info {
+    padding: 15px;
+}
+
+.recipe-title {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #222;
+}
+
+.ingredients-preview {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .more-ingredients {
+        font-size: 14px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.more-ingredients {
+    color: #999;
+    font-style: italic;
+}
