@@ -15,7 +15,7 @@ export class IngredientEntryDto {
     id: string;
 
     @IsNumber()
-    @Min(1)
+    //@Min(1)
     @Type(() => Number)
     quantity: number;
 }
@@ -23,12 +23,14 @@ export class IngredientEntryDto {
 export class CountPortionsDto {
     @IsNotEmpty({ each: true })
     @Transform(({ value }) => {
-        return value.map((entry: string) => {
+        // value может быть массивом или строкой в зависимости от того, как приходят параметры
+        const entries = Array.isArray(value) ? value : [value];
+        return entries.map((entry: string) => {
             const [id, quantity] = entry.split('=');
             return { id, quantity: Number(quantity) };
         });
     })
-    @ValidateNested({ each: true }) // Теперь декоратор доступен
+    @ValidateNested({ each: true })
     @Type(() => IngredientEntryDto)
     ingredientIds: IngredientEntryDto[];
 }

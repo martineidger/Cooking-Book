@@ -70,13 +70,28 @@ model IngredientCategory {
   Ingredient Ingredient[]
 }
 
+// model IngredientOnRecipe {
+//   id               String  @id @default(uuid())
+//   recipeId         String?
+//   ingredientId     String
+//   quantity         Float
+//   ingredientUnitId String
+
+//   unit       IngredientUnit @relation(fields: [ingredientUnitId], references: [id])
+//   recipe     Recipe?        @relation(fields: [recipeId], references: [id])
+//   ingredient Ingredient     @relation(fields: [ingredientId], references: [id])
+
+//   @@unique([recipeId, ingredientId])
+// }
+
 model IngredientOnRecipe {
   id               String  @id @default(uuid())
   recipeId         String?
   ingredientId     String
-  quantity         Float
+  quantity         Float   @default(1.0)
   ingredientUnitId String
 
+  // Удалено baseQuantity (лучше вычислять на лету)
   unit       IngredientUnit @relation(fields: [ingredientUnitId], references: [id])
   recipe     Recipe?        @relation(fields: [recipeId], references: [id])
   ingredient Ingredient     @relation(fields: [ingredientId], references: [id])
@@ -84,12 +99,37 @@ model IngredientOnRecipe {
   @@unique([recipeId, ingredientId])
 }
 
-model IngredientUnit {
-  id          String @id @default(uuid())
-  name        String @unique
-  gramsAmount Float
+// model IngredientUnit {
+//   id          String @id @default(uuid())
+//   name        String @unique
+//   gramsAmount Float
 
-  IngredientOnRecipe IngredientOnRecipe[]
+//   IngredientOnRecipe IngredientOnRecipe[]
+// }
+
+model IngredientUnit {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  shortName  String   @unique
+  unitType   UnitType
+  baseUnitId String?
+  multiplier Float?   @default(1.0)
+
+  // Отношения
+  baseUnit     IngredientUnit?      @relation("BaseUnits", fields: [baseUnitId], references: [id])
+  derivedUnits IngredientUnit[]     @relation("BaseUnits")
+  ingredients  IngredientOnRecipe[]
+
+  // Удалено UnitConversion[]
+  @@index([unitType])
+  @@index([baseUnitId])
+}
+
+enum UnitType {
+  WEIGHT // Весовые единицы (граммы, килограммы)
+  VOLUME // Объемные единицы (миллилитры, литры)
+  PIECE // Штучные единицы (шт, пучок)
+  CUSTOM // Прочие (по вкусу, щепотка)
 }
 
 model Cuisine {
@@ -141,6 +181,8 @@ model IngredientAllergen {
   ingredientId   String
   allergenId     String
   customSeverity Severity? // Переопределение серьёзности для конкретного ингредиента
+
+  @@unique([ingredientId, allergenId])
 }
 
 enum Severity {

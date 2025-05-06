@@ -1,0 +1,313 @@
+@use "sass:color";
+
+.recipe-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+
+    .back-button {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        cursor: pointer;
+        color: #3498db;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        transition: color 0.3s;
+
+        &:hover {
+            color: color.adjust(#3498db, $lightness: -15%);
+        }
+    }
+
+    .recipe-header {
+        margin-bottom: 2rem;
+
+        h1 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+    }
+
+    .recipe-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+
+        .meta-item {
+            display: flex;
+            gap: 0.5rem;
+
+            .meta-label {
+                font-weight: bold;
+                color: #495057;
+            }
+
+            &.allergens {
+                .allergens-list {
+                    color: #e74c3c;
+                }
+            }
+        }
+    }
+
+    .recipe-content {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 2rem;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .ingredients-section,
+    .steps-section {
+        h2 {
+            font-size: 1.5rem;
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .no-data {
+            color: #95a5a6;
+            font-style: italic;
+        }
+    }
+
+    .ingredients-list {
+        list-style: none;
+        padding: 0;
+
+        .ingredient-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid color.adjust(#eee, $lightness: -5%);
+
+            .ingredient-quantity {
+                font-weight: bold;
+                color: #2c3e50;
+            }
+        }
+    }
+
+    .steps-list {
+        counter-reset: step-counter;
+        list-style: none;
+        padding: 0;
+
+        .step-item {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+            .step-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.5rem;
+
+                h3 {
+                    margin: 0;
+                    font-size: 1.2rem;
+                }
+
+                .step-time {
+                    font-size: 0.9rem;
+                    color: color.scale(#7f8c8d, $lightness: -10%);
+                }
+            }
+
+            .step-description {
+                margin: 0;
+                line-height: 1.6;
+            }
+        }
+    }
+}
+
+.loading,
+.not-found {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+    color: color.adjust(#333, $lightness: 20%);
+}
+
+////////
+/// 
+/// 
+/// 
+
+// Стили для модальных окон
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    &.ReactModal__Overlay--after-open {
+        opacity: 1;
+    }
+
+    &.ReactModal__Overlay--before-close {
+        opacity: 0;
+    }
+}
+
+.modal {
+    background: white;
+    border-radius: 8px;
+    padding: 25px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+
+    .ReactModal__Content--after-open & {
+        transform: translateY(0);
+    }
+
+    .ReactModal__Content--before-close & {
+        transform: translateY(-20px);
+    }
+
+    h2 {
+        margin-top: 0;
+        color: #333;
+        font-size: 1.5rem;
+    }
+
+    p {
+        margin-bottom: 1.5rem;
+        color: #666;
+    }
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+
+    button {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &.button-primary {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+
+            &:hover {
+                background-color: #3e8e41; // Темнее на 15%
+            }
+        }
+
+        &.button-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+
+            &:hover {
+                background-color: #e0e0e0; // Темнее на 10%
+            }
+        }
+
+        &.button-danger {
+            background-color: #f44336;
+            color: white;
+            border: none;
+
+            &:hover {
+                background-color: #d32f2f; // Темнее на 10%
+            }
+        }
+    }
+}
+
+// Стили для кнопок админа
+.recipe-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.back-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: #e0e0e0; // Темнее на 10%
+    }
+}
+
+.admin-actions {
+    display: flex;
+    gap: 10px;
+
+    .edit-button {
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: #0b7dda; // Темнее на 10%
+        }
+    }
+
+    .delete-button {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: #d32f2f; // Темнее на 10%
+        }
+    }
+}

@@ -4,8 +4,10 @@ import { CreateIngredientDto } from 'src/dto/ingredient/create-ingredient.dto';
 import { Ingredient, IngredientCategory, IngredientUnit } from '@prisma/client';
 import { CreateBaseElement } from 'src/dto/base/create-base-element.dto';
 import { CreateIngredientUnitDto } from 'src/dto/ingredient/create-ingredient-unit.dto';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('ingredients')
+@Public()
 export class IngredientController {
   constructor(private readonly ingredientService: IngredientService) { }
 
@@ -14,10 +16,10 @@ export class IngredientController {
     return this.ingredientService.createCategory(createCategoryDto);
   }
 
-  @Post('unit')
-  async createUnit(@Body() createUnitDto: CreateIngredientUnitDto): Promise<IngredientUnit> {
-    return this.ingredientService.createUnit(createUnitDto);
-  }
+  // @Post('unit')
+  // async createUnit(@Body() createUnitDto: CreateIngredientUnitDto): Promise<IngredientUnit> {
+  //   return this.ingredientService.createUnit(createUnitDto);
+  // }
 
   @Post()
   async create(@Body() createIngredientDto: CreateIngredientDto): Promise<Ingredient> {
@@ -27,6 +29,11 @@ export class IngredientController {
   @Get('category')
   async findAllCategories() {
     return await this.ingredientService.findAllCategories();
+  }
+
+  @Get(':id')
+  async findIngredient(@Param('id') id: string) {
+    return await this.ingredientService.findIngredient(id);
   }
 
   @Get('unit')

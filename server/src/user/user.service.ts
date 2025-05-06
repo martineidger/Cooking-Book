@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from '../dto/user/create-user.dto';
 import { UpdateUserDto } from '../dto/user/update-user.dto';
 import { DatabaseService } from 'src/database/database.service';
@@ -36,6 +36,17 @@ export class UserService {
         subscriptions: true
       }
     })
+  }
+
+  async findCurrentUser(user) {
+    const userEntity = await this.prisma.user.findUnique(user.userId); // или user.sub в зависимости от вашей JWT структуры
+
+    if (!userEntity) {
+      throw new NotFoundException('User not found');
+    }
+
+    console.log("CURRENT", userEntity);
+    return userEntity;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

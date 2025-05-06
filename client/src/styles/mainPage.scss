@@ -1,7 +1,308 @@
+// @use "sass:color";
+
+// .main-preview-recipe {
+//     background: #ffffff;
+//     background: radial-gradient(circle, rgba(255, 255, 255, 1) 40%, rgba(25, 94, 64, 1) 73%, rgba(4, 50, 34, 1) 100%);
+//     // color: #043222;
+//     display: flex;
+//     flex-direction: column;
+//     align-items: center;
+//     justify-content: center;
+//     padding: 160px 0;
+
+//     h1 {
+//         font-size: 54px;
+//         color: #085d3f;
+//         margin: 0 0 10px;
+//         font-weight: 600;
+//     }
+
+//     p {
+//         color: #043021;
+//         margin: 0 0 28px;
+//     }
+
+//     .main-recipe-browse {
+//         display: flex;
+//         flex-direction: column;
+//         align-items: center;
+//         gap: 12px;
+
+//         input {
+//             width: 300px;
+//             padding: 10px;
+//             border: 1px solid #043021;
+//             border-radius: 8px;
+//         }
+
+//         button {
+//             cursor: pointer;
+//             width: 70%;
+//             border-radius: 30px;
+//             padding: 16px 0;
+//             border: none;
+//             background-color: #064630;
+//             color: #fff;
+//             font-weight: 600;
+//             transition: all 0.4s ease-in-out;
+
+//             &:hover {
+
+//                 background-color: #064630e1;
+//             }
+
+//         }
+//     }
+
+//     .main-recipe-container {
+//         padding: 20px;
+//         background-color: #fff;
+
+//         .recipe-cards-container {
+//             display: flex;
+//             flex-wrap: wrap;
+//             gap: 10px;
+
+//             .recipe-card {
+
+//                 width: 200px;
+//                 border: none;
+//                 border-radius: 16px;
+
+//                 img {
+//                     width: 200px;
+//                     height: auto;
+//                 }
+//             }
+//         }
+//     }
+
+// }
+
+// // Переменные для цветов (рекомендуемый подход)
+// $primary-color: #4CAF50;
+// $text-color: #333;
+// $light-gray: #f5f5f5;
+// $medium-gray: #ddd;
+// $dark-gray: #666;
+
+// // Основные стили
+// .container {
+//     padding: 0 1rem;
+//     max-width: 1200px;
+//     margin: 0 auto;
+// }
+
+// .title {
+//     font-size: 2rem;
+//     text-align: center;
+//     margin: 2rem 0;
+//     color: $text-color;
+// }
+
+// // Фильтры
+// .filter-section {
+//     margin: 1.5rem 0;
+
+//     h3 {
+//         font-size: 1.2rem;
+//         margin-bottom: 0.75rem;
+//         color: lighten($text-color, 20%);
+//     }
+
+//     .filter-chips {
+//         display: flex;
+//         flex-wrap: wrap;
+//         gap: 0.75rem;
+
+//         .filter-chip {
+//             padding: 0.5rem 1.25rem;
+//             border-radius: 20px;
+//             border: 1px solid $medium-gray;
+//             background-color: color.scale($light-gray, $lightness: 5%);
+//             cursor: pointer;
+//             transition: all 0.2s ease;
+//             font-size: 0.9rem;
+//             color: $text-color;
+
+//             &:hover {
+//                 background-color: color.scale($light-gray, $lightness: -5%);
+//                 transform: translateY(-1px);
+//             }
+
+//             &.active {
+//                 background-color: $primary-color;
+//                 color: white;
+//                 border-color: color.scale($primary-color, $lightness: -10%);
+//                 font-weight: 500;
+//             }
+//         }
+//     }
+// }
+
+// // Заголовок
+// .title {
+//     font-size: 2rem;
+//     text-align: center;
+//     margin: 2rem 0;
+//     color: #333;
+// }
+
+// // Поиск и фильтры
+// .main-browse {
+//     margin: 2rem 0;
+//     display: flex;
+//     flex-direction: column;
+//     gap: 1rem;
+
+//     input[type="text"] {
+//         padding: 0.75rem 1rem;
+//         border: 1px solid #ddd;
+//         border-radius: 8px;
+//         font-size: 1rem;
+//         width: 100%;
+//         max-width: 600px;
+//         margin: 0 auto;
+
+//         &:focus {
+//             outline: none;
+//             border-color: #4CAF50;
+//             box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+//         }
+//     }
+
+//     .filters {
+//         display: flex;
+//         flex-wrap: wrap;
+//         gap: 1rem;
+//         justify-content: center;
+//         align-items: center;
+
+//         select {
+//             padding: 0.5rem;
+//             border-radius: 4px;
+//             border: 1px solid #ccc;
+//             background-color: white;
+//             cursor: pointer;
+
+//             &:focus {
+//                 outline: none;
+//                 border-color: #4CAF50;
+//             }
+//         }
+
+//         button {
+//             padding: 0.5rem 1rem;
+//             background-color: #f5f5f5;
+//             border: 1px solid #ccc;
+//             border-radius: 4px;
+//             cursor: pointer;
+//             transition: all 0.2s;
+
+//             &:hover {
+//                 background-color: #e0e0e0;
+//             }
+//         }
+//     }
+// }
+
+
+// // Masonry grid для рецептов
+// .card-wrapper {
+//     margin: 2rem 0;
+
+//     .my-masonry-grid {
+//         display: flex;
+//         margin-left: -1rem;
+//         width: auto;
+//     }
+
+//     .my-masonry-grid_column {
+//         padding-left: 1rem;
+//         background-clip: padding-box;
+//     }
+// }
+
+// // Пагинация
+// .pagination {
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//     gap: 1rem;
+//     margin: 2rem 0;
+//     padding: 1rem;
+
+//     button {
+//         padding: 0.5rem 1rem;
+//         background-color: #f5f5f5;
+//         border: 1px solid #ddd;
+//         border-radius: 4px;
+//         cursor: pointer;
+//         transition: all 0.2s;
+
+//         &:hover:not(:disabled) {
+//             background-color: #e0e0e0;
+//         }
+
+//         &:disabled {
+//             opacity: 0.5;
+//             cursor: not-allowed;
+//         }
+//     }
+
+//     span {
+//         font-size: 0.9rem;
+//         color: #666;
+//     }
+// }
+
+// // Состояния загрузки и ошибки
+// .loading,
+// .error {
+//     text-align: center;
+//     padding: 2rem;
+//     font-size: 1.2rem;
+// }
+
+// .error {
+//     color: #d32f2f;
+// }
+
+@use "sass:color";
+
+// Переменные для цветов
+$primary-color: #4CAF50;
+$text-color: #333;
+$light-gray: #f5f5f5;
+$medium-gray: #ddd;
+$dark-gray: #666;
+$error-color: #d32f2f;
+$white: #ffffff;
+$dark-green: #043222;
+$medium-green: #085d3f;
+$light-green: #064630;
+
+// Основные стили
+.container {
+    padding: 0 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.title {
+    font-size: 2rem;
+    text-align: center;
+    margin: 2rem 0;
+    color: $text-color;
+}
+
+// Главный превью рецепта
 .main-preview-recipe {
-    background: #ffffff;
-    background: radial-gradient(circle, rgba(255, 255, 255, 1) 40%, rgba(25, 94, 64, 1) 73%, rgba(4, 50, 34, 1) 100%);
-    // color: #043222;
+    background: $white;
+    background: radial-gradient(circle,
+            $white 40%,
+            color.scale($dark-green, $lightness: 30%) 73%,
+            $dark-green 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -10,13 +311,13 @@
 
     h1 {
         font-size: 54px;
-        color: #085d3f;
+        color: $medium-green;
         margin: 0 0 10px;
         font-weight: 600;
     }
 
     p {
-        color: #043021;
+        color: $dark-green;
         margin: 0 0 28px;
     }
 
@@ -29,7 +330,7 @@
         input {
             width: 300px;
             padding: 10px;
-            border: 1px solid #043021;
+            border: 1px solid $dark-green;
             border-radius: 8px;
         }
 
@@ -39,22 +340,20 @@
             border-radius: 30px;
             padding: 16px 0;
             border: none;
-            background-color: #064630;
-            color: #fff;
+            background-color: $light-green;
+            color: $white;
             font-weight: 600;
             transition: all 0.4s ease-in-out;
 
             &:hover {
-
-                background-color: #064630e1;
+                background-color: color.scale($light-green, $lightness: -5%);
             }
-
         }
     }
 
     .main-recipe-container {
         padding: 20px;
-        background-color: #fff;
+        background-color: $white;
 
         .recipe-cards-container {
             display: flex;
@@ -62,7 +361,6 @@
             gap: 10px;
 
             .recipe-card {
-
                 width: 200px;
                 border: none;
                 border-radius: 16px;
@@ -74,5 +372,213 @@
             }
         }
     }
+}
 
+// Фильтры
+.filter-section {
+    margin: 1.5rem 0;
+
+    h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+        color: color.scale($text-color, $lightness: 25%);
+    }
+
+    .filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+
+        .filter-chip {
+            padding: 0.5rem 1.25rem;
+            border-radius: 20px;
+            border: 1px solid $medium-gray;
+            background-color: color.scale($light-gray, $lightness: 5%);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            color: $text-color;
+
+            &:hover {
+                background-color: color.scale($light-gray, $lightness: -5%);
+                transform: translateY(-1px);
+            }
+
+            &.active {
+                background-color: $primary-color;
+                color: $white;
+                border-color: color.scale($primary-color, $lightness: -10%);
+                font-weight: 500;
+            }
+        }
+    }
+}
+
+// Поиск и фильтры
+.main-browse {
+    margin: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    input[type="text"] {
+        padding: 0.75rem 1rem;
+        border: 1px solid $medium-gray;
+        border-radius: 8px;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+        }
+    }
+
+    .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+
+        select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid $medium-gray;
+            background-color: $white;
+            cursor: pointer;
+
+            &:focus {
+                outline: none;
+                border-color: $primary-color;
+            }
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background-color: $light-gray;
+            border: 1px solid $medium-gray;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover {
+                background-color: color.scale($light-gray, $lightness: -10%);
+            }
+        }
+    }
+}
+
+// Masonry grid для рецептов
+.card-wrapper {
+    margin: 2rem 0;
+
+    .my-masonry-grid {
+        display: flex;
+        margin-left: -1rem;
+        width: auto;
+    }
+
+    .my-masonry-grid_column {
+        padding-left: 1rem;
+        background-clip: padding-box;
+    }
+}
+
+// Пагинация
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 1rem;
+
+    button {
+        padding: 0.5rem 1rem;
+        background-color: $light-gray;
+        border: 1px solid $medium-gray;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover:not(:disabled) {
+            background-color: color.scale($light-gray, $lightness: -10%);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    span {
+        font-size: 0.9rem;
+        color: $dark-gray;
+    }
+}
+
+// Состояния загрузки и ошибки
+.loading,
+.error {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+}
+
+.error {
+    color: $error-color;
+}
+
+
+// Стили для чипсов
+.category-filters-section,
+.cuisine-filters-section {
+    margin: 1.5rem 0;
+    max-width: 100%;
+    overflow-x: auto;
+
+    .filter-subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+        color: color.scale($text-color, $lightness: 20%);
+    }
+}
+
+.category-chips-container,
+.cuisine-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    padding-bottom: 0.5rem;
+}
+
+.category-chip,
+.cuisine-chip {
+    padding: 0.6rem 1.3rem;
+    border-radius: 20px;
+    border: 1px solid $medium-gray;
+    background-color: color.scale($light-gray, $lightness: 5%);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 0.95rem;
+    color: $text-color;
+    white-space: nowrap;
+
+    &:hover {
+        background-color: color.scale($light-gray, $lightness: -5%);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.category-chip-active,
+.cuisine-chip-active {
+    background-color: $primary-color !important;
+    color: white !important;
+    border-color: color.scale($primary-color, $lightness: -10%) !important;
+    font-weight: 500;
 }

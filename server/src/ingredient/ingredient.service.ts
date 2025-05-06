@@ -24,11 +24,11 @@ export class IngredientService {
         })
     }
 
-    async createUnit(createUntiDto: CreateIngredientUnitDto): Promise<IngredientUnit> {
-        return this.prisma.ingredientUnit.create({
-            data: createUntiDto
-        })
-    }
+    // async createUnit(createUntiDto: CreateIngredientUnitDto): Promise<IngredientUnit> {
+    //     return this.prisma.ingredientUnit.create({
+    //         data: createUntiDto
+    //     })
+    // }
 
     async findAllCategories() {
         return await this.prisma.ingredientCategory.findMany();
@@ -40,5 +40,11 @@ export class IngredientService {
 
     async findAll() {
         return await this.prisma.ingredient.findMany();
+    }
+
+    async findIngredient(ingrId: string) {
+        return await this.prisma.ingredient.findUnique({
+            where: { id: ingrId }
+        })
     }
 }

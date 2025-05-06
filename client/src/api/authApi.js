@@ -1,60 +1,85 @@
+// src/api/authApi.js
 import axios from 'axios';
+import http from './http';
 
-const api = axios.create({
-    baseURL: "http://localhost:3000",
-    withCredentials: true,
-});
+const API_URL = 'http://localhost:3000/auth';
 
-// Добавляем interceptor для автоматического добавления accessToken
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+export const authApi = {
+    async login(credentials) {
+        try {
+            const response = await axios.post(`${API_URL}/login`, credentials);
+            console.log(response.data)
+            this.setAuthData(response.data);
+            return response.data;
+        } catch (error) {
+            this.clearAuthData();
+            throw error.response?.data || error;
         }
-        return config;
     },
-    (error) => Promise.reject(error)
-);
 
-// Добавляем interceptor для обработки 401 ошибки и обновления токена
-api.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        const originalRequest = error.config;
-
-        if (error.response.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-
-            try {
-                const refreshToken = localStorage.getItem('refreshToken');
-                if (!refreshToken) throw error;
-
-                const response = await axios.post(
-                    "http://localhost:3000/auth/refresh",
-                    { refreshToken }
-                );
-
-                localStorage.setItem('accessToken', response.data.access);
-                localStorage.setItem('refreshToken', response.data.refresh);
-
-                originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
-                return api(originalRequest);
-            } catch (refreshError) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                return Promise.reject(refreshError);
-            }
+    async register(userData) {
+        try {
+            console.log("API REG", userData)
+            const response = await axios.post(`${API_URL}/register`, userData);
+            this.setAuthData(response.data);
+            return response.data;
+        } catch (error) {
+            this.clearAuthData();
+            throw error.response?.data || error;
         }
+    },
 
-        return Promise.reject(error);
+    async refreshTokens() {
+        try {
+            const refreshToken = localStorage.getItem('refreshToken');
+            const response = await axios.post(`${API_URL}/refresh`, { refreshToken });
+            this.setAuthData(response.data);
+            return response.data;
+        } catch (error) {
+            this.clearAuthData();
+            throw error.response?.data || error;
+        }
+    },
+
+    async logout() {
+        this.clearAuthData();
+    },
+
+    async fetchCurrentUser() {
+        try {
+            //const response = await http.get('/users/me');
+            const id = localStorage.getItem('userId');
+            console.log("USER   ", id)
+            const response = await http.get(`users/${id}`)
+            localStorage.setItem('userRole', response.data.role)
+            console.log("RESPONCE    ", response)
+            return response.data;
+        } catch (error) {
+            this.clearAuthData();
+            throw error.response?.data || error;
+        }
+    },
+
+    setAuthData({ access_token, refresh_token, id }) {
+        localStorage.setItem('accessToken', access_token);
+        localStorage.setItem('refreshToken', refresh_token);
+        if (id) {
+            localStorage.setItem('userId', id);
+        }
+    },
+
+    clearAuthData() {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('currentUser');
+    },
+
+    getAccessToken() {
+        return localStorage.getItem('accessToken');
+    },
+
+    getCurrentUser() {
+        const user = localStorage.getItem('currentUser');
+        return user ? JSON.parse(user) : null;
     }
-);
-
-export default {
-    login: (credentials) => api.post('/auth/login', credentials),
-    register: (userData) => api.post('/auth/register', userData),
-    logout: (data) => api.post('/auth/logout', data),
-    refreshToken: (data) => api.post('/auth/refresh', data),
-    getProfile: () => api.get('/users/me'),
 };

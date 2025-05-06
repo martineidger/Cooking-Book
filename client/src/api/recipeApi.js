@@ -1,4 +1,5 @@
 import axios from 'axios';
+import http from './http';
 
 const API_BASE_URL = 'http://localhost:3000/recipes'; // Замените на ваш URL
 
@@ -16,26 +17,28 @@ class RecipeApi {
         ingredientIds,
         sortBy,
         sortOrder = 'asc',
+        searchTerm, // Добавляем параметр поиска
     }) {
         const params = {
             page,
             limit,
-            categoryId,
-            cuisineId,
-            ingredientIds: ingredientIds?.join(','),
-            sortBy,
+            ...(categoryId && { categoryId }), // Добавляем только если есть значение
+            ...(cuisineId && { cuisineId }),
+            ...(ingredientIds?.length && { ingredientIds: ingredientIds.join(',') }),
+            ...(sortBy && { sortBy }),
             sortOrder,
+            ...(searchTerm && { searchTerm }), // Добавляем поисковый запрос
         };
 
         const response = await axios.get(API_BASE_URL, { params });
-        return response.data; // { recipes, total, page, limit, totalPages }
+        return response.data;
     }
 
     /**
      * Получить рецепт по ID
      */
     async getRecipeById(id) {
-        const response = await axios.get(`${API_BASE_URL}/${id}`);
+        const response = await http.get(`${API_BASE_URL}/${id}`);
         return response.data; // { recipe, allergens }
     }
 
@@ -99,13 +102,107 @@ class RecipeApi {
     /**
      * Подсчет порций по ингредиентам
      */
-    async countPortions(ingredients) {
-        // ingredients: Array<{ id: string, quantity: number }>
-        const response = await axios.get(`${API_BASE_URL}/count-portions`, {
-            params: { ingredientIds: ingredients.map(i => `${i.id},${i.quantity}`).join(';') },
-        });
-        return response.data; // Array<{ Recipe, minPortionsCount }>
+    // async countPortionsStrict(ingredients) {
+    //     try {
+    //         // Создаем параметры в формате: ingredientIds[]=id1=quantity1&ingredientIds[]=id2=quantity2
+    //         const params = new URLSearchParams();
+    //         ingredients.forEach(ingredient => {
+    //             params.append('ingredientIds', `${ingredient.id}=${ingredient.quantity}`);
+    //         });
+
+    //         const apiUrl = `/recipes/count-portions?${params.toString()}`;
+    //         const response = await http.get(apiUrl);
+    //         console.log(apiUrl)
+    //         console.log(response)
+    //         return response.data;
+    //     } catch (error) {
+    //         console.error('Ошибка при подсчете порций:', error);
+    //         throw error;
+    //     }
+    // }
+
+    // async countPortionsPartial(ingredients) {
+    //     try {
+    //         // Создаем параметры в формате: ingredientIds[]=id1=quantity1&ingredientIds[]=id2=quantity2
+    //         const params = new URLSearchParams();
+    //         ingredients.forEach(ingredient => {
+    //             params.append('ingredientIds', `${ingredient.id}=${ingredient.quantity}`);
+    //         });
+
+    //         const apiUrl = `/recipes/count-portions-partial?${params.toString()}`;
+    //         const response = await http.get(apiUrl);
+    //         console.log(apiUrl)
+    //         console.log(response)
+    //         return response.data;
+    //     } catch (error) {
+    //         console.error('Ошибка при подсчете порций:', error);
+    //         throw error;
+    //     }
+    // }
+
+    async countPortionsStrict(ingredientsMap) {
+        try {
+            const params = new URLSearchParams();
+
+            // Преобразуем Map в массив пар [key, value]
+            Array.from(ingredientsMap.entries()).forEach(([id, quantity]) => {
+                params.append('ingredientIds', `${id}=${quantity}`);
+            });
+
+            const apiUrl = `/recipes/count-portions?${params.toString()}`;
+            const response = await http.get(apiUrl);
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при подсчете порций (strict):', error);
+            throw error;
+        }
     }
+
+    async countPortionsPartial(ingredientsMap) {
+        try {
+            const params = new URLSearchParams();
+
+            // Аналогичное преобразование для partial версии
+            Array.from(ingredientsMap.entries()).forEach(([id, quantity]) => {
+                params.append('ingredientIds', `${id}=${quantity}`);
+            });
+
+            const apiUrl = `/recipes/count-portions-partial?${params.toString()}`;
+            const response = await http.get(apiUrl);
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при подсчете порций (partial):', error);
+            throw error;
+        }
+    }
+
+
+    getIngredients = async () => axios.get('/api/ingredients')
+    getCategories = async () => axios.get('/api/categories')
+    getCuisines = async () => axios.get('/api/cuisines')
+
+    async searchRecipesByIngredients(ingredientIds, categoryId, cuisineId) {
+        const params = new URLSearchParams();
+        params.append('ingredientIds', ingredientIds.join(','));
+        if (categoryId) params.append('categoryId', categoryId);
+        if (cuisineId) params.append('cuisineId', cuisineId);
+        return http.get(`/recipes/with-ingredients?${params.toString()}`);
+    }
+
+    async calculatePortions(ingredients) {
+        return http.get('/recipes/count-portions', {
+            params: { ingredientIds: ingredients }
+        });
+    }
+
+    async fetchCategories() {
+        return http.get('/categories');
+    }
+
+    async fetchCuisines() {
+        return http.get('/categories');
+    }
+
 }
 
 export const recipeApi = new RecipeApi();

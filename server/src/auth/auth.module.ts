@@ -13,8 +13,8 @@ import { JwtAuthGuard } from './guards/jwt.guard';
 
 @Module({
   imports: [
-    ConfigModule, // Должен быть первым
-    PassportModule.register({ defaultStrategy: 'jwt' }), // Явная регистрация
+    ConfigModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],

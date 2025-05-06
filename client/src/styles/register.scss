@@ -1,0 +1,127 @@
+// src/components/RegisterForm.scss
+.register-form {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-size: 1.8rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+
+            &:focus {
+                outline: none;
+                border-color: #4285f4;
+                box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+            }
+
+            &.error-field {
+                border-color: #ff4444;
+
+                &:focus {
+                    box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2);
+                }
+            }
+        }
+
+        .field-error {
+            color: #ff4444;
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            display: block;
+        }
+    }
+
+    .error-message {
+        color: #ff4444;
+        padding: 0.75rem;
+        background-color: #ffebee;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        border-left: 3px solid #ff4444;
+    }
+
+    .submit-button {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #4CAF50; // Зеленый цвет для регистрации
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            background-color: #3d8b40; // Темнее при наведении
+        }
+
+        &:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (max-width: 480px) {
+        padding: 1.5rem;
+        margin: 1rem;
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        .form-group input {
+            padding: 0.65rem;
+        }
+
+        .submit-button {
+            padding: 0.65rem;
+        }
+    }
+}

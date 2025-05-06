@@ -2,34 +2,84 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRecipeDto } from '../dto/recipe/create-recipe.dto';
 import { UpdateRecipeDto } from '../dto/recipe/update-recipe.dto';
 import { DatabaseService } from 'src/database/database.service';
-import { Allergen, CookingStep, Recipe } from '@prisma/client';
+import { Allergen, CookingStep, IngredientUnit, Prisma, Recipe } from '@prisma/client';
 import { CreateNoteDto } from 'src/dto/note/create-note.dto';
+import { IngredientUnitService } from 'src/ingredient/unit/ingredient-unit.service';
+import { AllergenService } from 'src/allergen/allergen.service';
 
 @Injectable()
 export class RecipeService {
-  constructor(private readonly prisma: DatabaseService) { }
+  constructor(
+    private readonly prisma: DatabaseService,
+    private readonly unitService: IngredientUnitService,
+    private readonly allergenService: AllergenService
+  ) { }
+
+  // async create(createRecipeDto: CreateRecipeDto): Promise<Recipe> {
+  //   if (createRecipeDto.categories) {
+  //     const categories = await this.prisma.category.findMany({
+  //       where: {
+  //         id: {
+  //           in: createRecipeDto.categories?.map(cat => cat.categoryId),
+  //         },
+  //       },
+  //     });
+
+  //     if (categories.length !== createRecipeDto.categories?.length) {
+  //       throw new Error('Некоторые категории не найдены.');
+  //     }
+  //   }
+
+  //   return this.prisma.recipe.create({
+  //     data: {
+  //       user: { connect: { id: createRecipeDto.userId } },
+  //       title: createRecipeDto.title,
+  //       cuisine: { connect: { id: createRecipeDto.cuisineId } },
+  //       description: createRecipeDto.description,
+  //       categories: {
+  //         create: createRecipeDto.categories?.map(cat => ({
+  //           category: { connect: { id: cat.categoryId } }
+  //         }))
+  //       },
+  //       portions: createRecipeDto.portions,
+  //       ingredients: {
+  //         create: createRecipeDto.ingredients?.map(ingr => ({
+  //           ingredient: { connect: { id: ingr.ingredientId } },
+  //           quantity: ingr.quantity,
+  //           unit: { connect: { id: ingr.ingredientUnitId } }
+  //         })) || []
+  //       },
+  //       steps: {
+  //         create: createRecipeDto.steps?.map(step => ({
+  //           title: step.title,
+  //           description: step.description,
+  //           order: step.order,
+  //           durationMin: step.durationMin || 0,
+  //         })) || [],
+  //       },
+  //     },
+  //   });
+  // }
 
   async create(createRecipeDto: CreateRecipeDto): Promise<Recipe> {
+    // Валидация категорий
     if (createRecipeDto.categories) {
       const categories = await this.prisma.category.findMany({
-        where: {
-          id: {
-            in: createRecipeDto.categories?.map(cat => cat.categoryId),
-          },
-        },
+        where: { id: { in: createRecipeDto.categories.map(cat => cat.categoryId) } },
       });
-
-      if (categories.length !== createRecipeDto.categories?.length) {
+      if (categories.length !== createRecipeDto.categories.length) {
         throw new Error('Некоторые категории не найдены.');
       }
     }
 
+    // Валидация единиц измерения
+    await this.unitService.validateIngredientUnits(createRecipeDto.ingredients!);
 
     return this.prisma.recipe.create({
       data: {
         user: { connect: { id: createRecipeDto.userId } },
         title: createRecipeDto.title,
-        cuisine: { connect: { id: createRecipeDto.cuisineId } },
+        ...(createRecipeDto.cuisineId && { cuisine: { connect: { id: createRecipeDto.cuisineId } } }),
         description: createRecipeDto.description,
         categories: {
           create: createRecipeDto.categories?.map(cat => ({
@@ -38,11 +88,12 @@ export class RecipeService {
         },
         portions: createRecipeDto.portions,
         ingredients: {
-          create: createRecipeDto.ingredients?.map(ingr => ({
+          create: await Promise.all(createRecipeDto.ingredients?.map(async ingr => ({
             ingredient: { connect: { id: ingr.ingredientId } },
             quantity: ingr.quantity,
-            unit: { connect: { id: ingr.ingredientUnitId } }
-          })) || []
+            unit: { connect: { id: ingr.ingredientUnitId } },
+            baseQuantity: await this.unitService.calculateBaseQuantity(ingr.quantity, ingr.ingredientUnitId)
+          })) || [])
         },
         steps: {
           create: createRecipeDto.steps?.map(step => ({
@@ -56,12 +107,48 @@ export class RecipeService {
     });
   }
 
+  async findOne(id: string): Promise<{
+    recipe: Recipe;
+    allergens: Allergen[];
+    possibleUnits: Record<string, IngredientUnit[]>; // Доступные единицы для каждого ингредиента
+  }> {
+    const [recipe, allergens] = await Promise.all([
+      this.prisma.recipe.findUnique({
+        where: { id },
+        include: {
+          ingredients: {
+            include: {
+              ingredient: { select: { name: true } },
+              unit: true
+            }
+          },
+          cuisine: true,
+          categories: { include: { category: true } },
+          steps: { orderBy: { order: 'asc' } }
+        },
+      }),
+      this.allergenService.getAllergensFromRecipe(id)
+    ]);
+
+    if (!recipe) {
+      throw new NotFoundException('Рецепт не найден');
+    }
+
+    const possibleUnits = await this.unitService.getPossibleUnitsForIngredients(recipe.ingredients);
+
+    return {
+      recipe,
+      allergens,
+      possibleUnits
+    };
+  }
+
+
   async findAllWithIngredientMatch(
     ingredientIds: string[],
     categoryId?: string,
     cuisineId?: string
   ): Promise<{ recipe: Recipe; matchCount: number; allergens: Allergen[] }[]> {
-    // 1. Находим рецепты с совпадениями ингредиентов
     const recipes = await this.prisma.recipe.findMany({
       where: {
         ...(categoryId && { categories: { some: { categoryId } } }),
@@ -87,10 +174,14 @@ export class RecipeService {
                 allergens: {
                   include: {
                     allergen: true,
-                  },
+
+                  }
                 },
+
               },
+
             },
+            unit: true
           },
         },
       },
@@ -101,9 +192,7 @@ export class RecipeService {
       },
     });
 
-    // 2. Формируем результат с аллергенами
     return recipes.map(recipe => {
-      // Собираем уникальные аллергены из всех ингредиентов рецепта
       const allergenMap = new Map<string, Allergen>();
 
       recipe.ingredients.forEach(recipeIngredient => {
@@ -123,6 +212,216 @@ export class RecipeService {
     });
   }
 
+  // async findAll(
+  //   page: number = 1,
+  //   limit: number = 10,
+  //   categoryId?: string,
+  //   cuisineId?: string,
+  //   ingredientIds?: string[],
+  //   sortBy?: string,
+  //   sortOrder: 'asc' | 'desc' = 'asc',
+  // ): Promise<{
+  //   recipes: { recipe: Recipe; allergens: Allergen[] }[],
+  //   total: number,
+  //   page: number,
+  //   limit: number,
+  //   totalPages: number
+  // }> {
+  //   // 1. Подготавливаем условия для фильтрации (where)
+  //   const where = {
+  //     ...(categoryId && { categories: { some: { categoryId } } }),
+  //     ...(cuisineId && { cuisineId }),
+  //     ...(ingredientIds && {
+  //       ingredients: {
+  //         some: {
+  //           ingredientId: {
+  //             in: ingredientIds,
+  //           },
+  //         },
+  //       },
+  //     }),
+  //   };
+
+  //   // 2. Сортировка (orderBy)
+  //   const orderBy = sortBy ? { [sortBy]: sortOrder } : undefined;
+
+  //   // 3. Вычисляем offset (пропуск записей)
+  //   const offset = (page - 1) * limit;
+
+  //   // 4. Получаем ОБЩЕЕ количество рецептов (для пагинации)
+  //   const total = await this.prisma.recipe.count({ where });
+
+  //   // 5. Получаем рецепты с пагинацией
+  //   const recipesPagination = await this.prisma.recipe.findMany({
+  //     where,
+  //     orderBy,
+  //     skip: offset,    // Пропускаем предыдущие страницы
+  //     take: +limit,     // Берем только `limit` записей
+  //     include: {
+  //       ingredients: {
+  //         include: {
+  //           ingredient: true,
+  //           unit: true,
+  //         },
+  //       },
+  //       cuisine: true,
+  //       categories: true,
+  //       steps: true,
+  //     },
+  //   });
+
+  //   // 6. Добавляем аллергены для каждого рецепта
+  //   const recipes = await Promise.all(
+  //     recipesPagination.map(async (recipe) => {
+  //       const allergens = await this.allergenService.getAllergensFromRecipe(recipe.id);
+  //       return { recipe, allergens };
+  //     })
+  //   );
+
+  //   // 7. Возвращаем данные с пагинацией
+  //   return {
+  //     recipes,
+  //     total,
+  //     page,
+  //     limit,
+  //     totalPages: Math.ceil(total / limit), // Округляем вверх
+  //   };
+  // }
+
+
+  // async findOne(id: string): Promise<{ recipe: Recipe; allergens: Allergen[] }> {
+  //   // Получаем рецепт и аллергены параллельно
+  //   const [recipe, allergens] = await Promise.all([
+  //     this.prisma.recipe.findUnique({
+  //       where: { id: id.toString() },
+  //       include: {
+  //         ingredients: {
+  //           include: {
+  //             ingredient: true, // Важно включить связанные ингредиенты
+  //           },
+  //         },
+  //         cuisine: true,
+  //         categories: true,
+  //         steps: true
+  //       },
+  //     }),
+  //     this.getAllergensFromRecipe(id) // Предполагаем, что это асинхронный метод
+  //   ]);
+
+  //   if (!recipe) {
+  //     throw new NotFoundException('Рецепт не найден');
+  //   }
+
+  //   return {
+  //     recipe,
+  //     allergens
+  //   };
+  // }
+
+
+  // async findAll(
+  //   page: number = 1,
+  //   limit: number = 10,
+  //   categoryId?: string,
+  //   cuisineId?: string,
+  //   ingredientIds?: string[],
+  //   sortBy?: string,
+  //   sortOrder: 'asc' | 'desc' = 'asc',
+  //   searchTerm?: string, // Добавляем параметр поиска
+  // ): Promise<{
+  //   recipes: { recipe: Recipe; allergens: Allergen[] }[],
+  //   total: number,
+  //   page: number,
+  //   limit: number,
+  //   totalPages: number
+  // }> {
+  //   // 1. Подготавливаем условия для фильтрации (where)
+  //   const where: Prisma.RecipeWhereInput = {
+  //     AND: [
+  //       // Фильтры по категории, кухне и ингредиентам
+  //       {
+  //         ...(categoryId && { categories: { some: { categoryId } } }),
+  //         ...(cuisineId && { cuisineId }),
+  //         ...(ingredientIds && {
+  //           ingredients: {
+  //             some: {
+  //               ingredientId: {
+  //                 in: ingredientIds,
+  //               },
+  //             },
+  //           },
+  //         }),
+  //       },
+  //       // Поиск по тексту (если есть searchTerm)
+  //       ...(searchTerm ? [
+  //         {
+  //           OR: [
+  //             { title: { contains: searchTerm, mode: 'insensitive' } },
+  //             { description: { contains: searchTerm, mode: 'insensitive' } },
+  //           ],
+  //         }
+  //       ] : []),
+  //     ],
+  //   };
+
+  //   // 2. Сортировка (orderBy)
+  //   const orderBy = sortBy ? { [sortBy]: sortOrder } : undefined;
+
+  //   // 3. Вычисляем offset (пропуск записей)
+  //   const offset = (page - 1) * limit;
+
+  //   // 4. Получаем ОБЩЕЕ количество рецептов (для пагинации)
+  //   const total = await this.prisma.recipe.count({ where });
+
+  //   // 5. Оптимизация: получаем аллергены за один запрос
+  //   const recipesPagination = await this.prisma.recipe.findMany({
+  //     where,
+  //     orderBy,
+  //     skip: offset,
+  //     take: +limit,
+  //     include: {
+
+  //       cuisine: true,
+  //       categories: {
+  //         include: {
+  //           category: true,
+  //         },
+  //       },
+  //       steps: true,
+  //       // Добавляем аллергены сразу в основном запросе
+  //       ingredients: {
+  //         include: {
+  //           ingredient: {
+  //             include: {
+  //               allergens: true,
+  //             },
+
+  //           },
+  //           unit: true,
+  //         },
+  //       },
+  //     },
+  //   });
+
+  //   // 6. Добавляем аллергены для каждого рецепта
+  //   const recipes = await Promise.all(
+  //     recipesPagination.map(async (recipe) => {
+  //       const allergens = await this.allergenService.getAllergensFromRecipe(recipe.id);
+  //       return { recipe, allergens };
+  //     })
+  //   );
+
+  //   // 7. Возвращаем данные с пагинацией
+  //   return {
+  //     recipes,
+  //     total,
+  //     page,
+  //     limit,
+  //     totalPages: Math.ceil(total / limit),
+  //   };
+  // }
+
+
   async findAll(
     page: number = 1,
     limit: number = 10,
@@ -131,6 +430,7 @@ export class RecipeService {
     ingredientIds?: string[],
     sortBy?: string,
     sortOrder: 'asc' | 'desc' = 'asc',
+    searchTerm?: string,
   ): Promise<{
     recipes: { recipe: Recipe; allergens: Allergen[] }[],
     total: number,
@@ -139,52 +439,85 @@ export class RecipeService {
     totalPages: number
   }> {
     // 1. Подготавливаем условия для фильтрации (where)
-    const where = {
-      ...(categoryId && { categories: { some: { categoryId } } }),
-      ...(cuisineId && { cuisineId }),
-      ...(ingredientIds && {
-        ingredients: {
-          some: {
-            ingredientId: {
-              in: ingredientIds,
+    const where: Prisma.RecipeWhereInput = {
+      AND: [
+        {
+          ...(categoryId && { categories: { some: { categoryId } } }),
+          ...(cuisineId && { cuisineId }),
+          ...(ingredientIds && {
+            ingredients: {
+              some: {
+                ingredientId: {
+                  in: ingredientIds,
+                },
+              },
             },
-          },
+          }),
         },
-      }),
+        ...(searchTerm ? [{
+          OR: [
+            { title: { contains: searchTerm, mode: 'insensitive' as const } },
+            { description: { contains: searchTerm, mode: 'insensitive' as const } },
+          ],
+        }] : []),
+      ].filter(Boolean),
     };
 
-    // 2. Сортировка (orderBy)
-    const orderBy = sortBy ? { [sortBy]: sortOrder } : undefined;
+    // 2. Сортировка (orderBy) - исправленная версия
+    let orderBy: Prisma.RecipeOrderByWithRelationInput | undefined;
+    if (sortBy) {
+      // Явно указываем возможные поля для сортировки
+      switch (sortBy) {
+        case 'title':
+          orderBy = { title: sortOrder };
+          break;
 
-    // 3. Вычисляем offset (пропуск записей)
+        // Добавьте другие поддерживаемые поля сортировки
+        default:
+          orderBy = { title: 'desc' }; // Сортировка по умолчанию
+      }
+    }
+
+    // 3. Вычисляем offset
     const offset = (page - 1) * limit;
 
-    // 4. Получаем ОБЩЕЕ количество рецептов (для пагинации)
+    // 4. Получаем общее количество рецептов
     const total = await this.prisma.recipe.count({ where });
 
-    // 5. Получаем рецепты с пагинацией
+    // 5. Получаем рецепты с пагинацией (без аллергенов)
     const recipesPagination = await this.prisma.recipe.findMany({
       where,
       orderBy,
-      skip: offset,    // Пропускаем предыдущие страницы
-      take: +limit,     // Берем только `limit` записей
+      skip: offset,
+      take: +limit,
       include: {
         ingredients: {
           include: {
             ingredient: true,
+            unit: true,
           },
         },
         cuisine: true,
-        categories: true,
+        categories: {
+          include: {
+            category: true,
+          },
+        },
         steps: true,
       },
     });
 
-    // 6. Добавляем аллергены для каждого рецепта
+    // 6. Получаем аллергены для каждого рецепта
     const recipes = await Promise.all(
       recipesPagination.map(async (recipe) => {
-        const allergens = await this.getAllergensFromRecipe(recipe.id);
-        return { recipe, allergens };
+        const allergens = await this.allergenService.getAllergensFromRecipe(recipe.id);
+        return {
+          recipe: {
+            ...recipe,
+            categories: recipe.categories.map(c => c.category),
+          },
+          allergens
+        };
       })
     );
 
@@ -194,49 +527,11 @@ export class RecipeService {
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit), // Округляем вверх
+      totalPages: Math.ceil(total / limit),
     };
   }
 
 
-  async findOne(id: string): Promise<{ recipe: Recipe; allergens: Allergen[] }> {
-    // Получаем рецепт и аллергены параллельно
-    const [recipe, allergens] = await Promise.all([
-      this.prisma.recipe.findUnique({
-        where: { id: id.toString() },
-        include: {
-          ingredients: {
-            include: {
-              ingredient: true // Важно включить связанные ингредиенты
-            }
-          },
-          cuisine: true,
-          categories: true,
-        },
-      }),
-      this.getAllergensFromRecipe(id) // Предполагаем, что это асинхронный метод
-    ]);
-
-    if (!recipe) {
-      throw new NotFoundException('Рецепт не найден');
-    }
-
-    return {
-      recipe,
-      allergens
-    };
-  }
-
-  async findStep(recipeId: string, stepNumber: number): Promise<CookingStep | null> {
-    return this.prisma.cookingStep.findFirst({
-      where: {
-        AND: {
-          recipeId: recipeId.toString(),
-          order: stepNumber
-        }
-      },
-    });
-  }
 
   async update(id: string, updateRecipeDto: UpdateRecipeDto): Promise<Recipe> {
     return this.prisma.recipe.update({
@@ -282,89 +577,10 @@ export class RecipeService {
     });
   }
 
-  async findPortionsByIngredientCount(
-    ingredients: Map<string, number>
-  ): Promise<{ Recipe: Recipe; minPortionsCount: number }[]> {
-    const recipes = await this.prisma.recipe.findMany({
-      include: {
-        ingredients: true,
-      },
-    });
 
-    // Явно указываем тип для результатов
-    const results: Array<{ Recipe: Recipe; minPortionsCount: number }> = [];
 
-    for (const recipe of recipes) {
-      const portionsPerIngredient = recipe.ingredients
-        .filter(ingredient => ingredient.quantity > 0)
-        .map(ingredient => {
-          const available = ingredients.get(ingredient.ingredientId) || 0;
-          return Math.floor((available * recipe.portions) / ingredient.quantity);
-        });
 
-      // Пропускаем рецепты без валидных ингредиентов
-      if (portionsPerIngredient.length === 0) {
-        continue;
-      }
 
-      const minPortions = Math.min(...portionsPerIngredient);
 
-      // Добавляем только рецепты, которые можно приготовить
-      if (minPortions > 0) {
-        results.push({
-          Recipe: recipe,
-          minPortionsCount: minPortions
-        });
-      }
-    }
 
-    return results;
-  }
-
-  async addNote(createNoteDto: CreateNoteDto) {
-    return await this.prisma.note.create({
-      data: createNoteDto
-    })
-  }
-
-  private async getAllergensFromRecipe(recipeId: string): Promise<Allergen[]> {
-    // 1. Находим рецепт со всеми связанными ингредиентами и их аллергенами
-    const recipe = await this.prisma.recipe.findUnique({
-      where: { id: recipeId },
-      include: {
-        ingredients: {
-          include: {
-            ingredient: {
-              include: {
-                allergens: {
-                  include: {
-                    allergen: true // Включаем полные объекты аллергенов
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!recipe) {
-      throw new NotFoundException('Рецепт не найден');
-    }
-
-    // 2. Собираем все уникальные аллергены
-    const allergenMap = new Map<string, Allergen>();
-
-    recipe.ingredients.forEach(recipeIngredient => {
-      recipeIngredient.ingredient.allergens?.forEach(ingredientAllergen => {
-        const allergen = ingredientAllergen.allergen;
-        if (!allergenMap.has(allergen.id)) {
-          allergenMap.set(allergen.id, allergen);
-        }
-      });
-    });
-
-    // 3. Преобразуем Map в массив и возвращаем
-    return Array.from(allergenMap.values());
-  }
 }

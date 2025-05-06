@@ -6,10 +6,18 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from 'src/auth/strategy/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ServingsModule } from './servings/servings.module';
+import { AdditionalModule } from './additional/additional.module';
+import { IngredientUnitModule } from 'src/ingredient/unit/ingredient-unit.module';
+import { AllergenModule } from 'src/allergen/allergen.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    ServingsModule,
+    AdditionalModule,
+    IngredientUnitModule,
+    AllergenModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       global: true,

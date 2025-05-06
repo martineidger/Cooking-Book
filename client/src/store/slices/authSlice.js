@@ -1,107 +1,101 @@
+// src/store/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import authApi from '../../api/authApi';
+import { authApi } from '../../api/authApi';
 
 export const loginUser = createAsyncThunk(
     'auth/login',
-    async (userData) => {
-        const response = await fetch('http://localhost:3000/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(userData),
-        });
-        if (!response.ok) {
-            throw new Error('Ошибка при входе');
+    async (credentials, { rejectWithValue }) => {
+        try {
+            const response = await authApi.login(credentials);
+            const user = await authApi.fetchCurrentUser();
+            return { ...response, user };
+        } catch (error) {
+            console.log(error)
+            return rejectWithValue(error.message);
         }
-
-        const data = await response.json();
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        return data;
     }
 );
 
 export const registerUser = createAsyncThunk(
     'auth/register',
-    async (userData) => {
-        const response = await fetch('http://localhost:3000/auth/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(userData),
-        });
-        if (!response.ok) {
-            throw new Error('Ошибка при регистрации');
+    async (userData, { rejectWithValue }) => {
+        try {
+            console.log("DATA ", userData)
+            const response = await authApi.register(userData);
+            const user = await authApi.fetchCurrentUser();
+            return { ...response, user };
+        } catch (error) {
+            return rejectWithValue(error.message);
         }
-        return await response.json();
     }
 );
 
-// Добавим action для загрузки профиля
-export const fetchUserProfile = createAsyncThunk(
-    'auth/profile',
-    async () => {
-        const response = authApi.getProfile();
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке профиля');
+export const fetchCurrentUser = createAsyncThunk(
+    'auth/fetchCurrentUser',
+    async (_, { rejectWithValue }) => {
+        try {
+            return await authApi.fetchCurrentUser();
+        } catch (error) {
+            return rejectWithValue(error.message);
         }
-        return await response.json();
     }
 );
 
-
-const userSlice = createSlice({
+const authSlice = createSlice({
     name: 'auth',
     initialState: {
-        user: null,
-        loading: false,
+        user: authApi.getCurrentUser(),
+        isLoading: false,
         error: null,
-        isAuthenticated: false,
+        isAuthenticated: !!authApi.getAccessToken()
     },
     reducers: {
         logout: (state) => {
+            authApi.clearAuthData();
             state.user = null;
             state.isAuthenticated = false;
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-        },
+        }
     },
     extraReducers: (builder) => {
         builder
             .addCase(loginUser.pending, (state) => {
-                state.loading = true;
+                state.isLoading = true;
                 state.error = null;
             })
             .addCase(loginUser.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
+                state.isLoading = false;
+                state.user = action.payload.user;
                 state.isAuthenticated = true;
             })
             .addCase(loginUser.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message;
+                state.isLoading = false;
+                state.error = action.payload;
+                state.isAuthenticated = false;
             })
             .addCase(registerUser.pending, (state) => {
-                state.loading = true;
+                state.isLoading = true;
                 state.error = null;
             })
             .addCase(registerUser.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
+                state.isLoading = false;
+                state.user = action.payload.user;
+                state.isAuthenticated = true;
             })
             .addCase(registerUser.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message;
+                state.isLoading = false;
+                state.error = action.payload;
+                state.isAuthenticated = false;
             })
-            .addCase(fetchUserProfile.fulfilled, (state, action) => {
+            .addCase(fetchCurrentUser.fulfilled, (state, action) => {
                 state.user = action.payload;
                 state.isAuthenticated = true;
-            });;
-    },
+            })
+            .addCase(fetchCurrentUser.rejected, (state) => {
+                state.user = null;
+                state.isAuthenticated = false;
+            });
+    }
 });
 
-// Экспорт редюсера и действий
-export const { logout } = userSlice.actions;
-export default userSlice.reducer;
+export const { logout } = authSlice.actions;
+export default authSlice.reducer;

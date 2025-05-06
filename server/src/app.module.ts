@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -13,6 +13,10 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TestController } from './test.controller';
 import { JwtStrategy } from './auth/strategy/jwt.strategy';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { APP_FILTER } from '@nestjs/core';
+import { ErrorMiddleware } from './common/middlewares/error-exception.middleware';
+import { AdviceModule } from './advice/advice.module';
 
 @Module({
   imports: [
@@ -25,9 +29,24 @@ import { JwtStrategy } from './auth/strategy/jwt.strategy';
     UserModule,
     CuisineModule,
     AllergenModule,
+    AdviceModule,
 
   ],
   controllers: [AppController, TestController],
-  providers: [AppService, DatabaseService, JwtStrategy],
+  providers: [
+    AppService,
+    DatabaseService,
+    JwtStrategy,
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    }
+  ],
 })
-export class AppModule { }
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(ErrorMiddleware)
+      .forRoutes('*'); // Применяем ко всем маршрутам
+  }
+}

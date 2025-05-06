@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, ConflictException, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LoginDto } from '../dto/auth/login.dto';
@@ -17,7 +17,7 @@ export class AuthController {
       loginDto.password,
     );
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
     return this.authService.login(user);
   }
@@ -27,7 +27,7 @@ export class AuthController {
   async register(@Body() registerDto: RegisterDto) {
     const canRegister = await this.authService.validateUserForRegistry(registerDto.email)
     if (!canRegister) {
-      throw new Error('User with such email already exists');
+      throw new ConflictException('User with such email already exists');
     }
 
     const user = await this.authService.register(registerDto);

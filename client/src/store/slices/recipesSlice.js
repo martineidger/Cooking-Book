@@ -14,12 +14,15 @@ const initialState = {
         totalPages: 1,
     },
     filters: {
+        searchTerm: '',
         categoryId: null,
         cuisineId: null,
         ingredientIds: [],
         sortBy: 'title',
         sortOrder: 'asc',
     },
+    categories: [],
+    cuisines: []
 };
 
 // ======================== Async Thunks ========================
@@ -27,7 +30,16 @@ const initialState = {
 // Загрузка всех рецептов с пагинацией и фильтрами
 export const fetchRecipes = createAsyncThunk(
     'recipes/fetchRecipes',
-    async ({ page = 1, limit = 10, categoryId, cuisineId, ingredientIds, sortBy, sortOrder }, { rejectWithValue }) => {
+    async ({
+        page = 1,
+        limit = 10,
+        categoryId,
+        cuisineId,
+        ingredientIds,
+        sortBy,
+        sortOrder,
+        searchTerm // Добавляем параметр поиска
+    }, { rejectWithValue }) => {
         try {
             const response = await recipeApi.getAllRecipes({
                 page,
@@ -37,7 +49,32 @@ export const fetchRecipes = createAsyncThunk(
                 ingredientIds,
                 sortBy,
                 sortOrder,
+                searchTerm // Передаем в API
             });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+export const fetchCuisines = createAsyncThunk(
+    'recipes/fetchCuisines',
+    async (_, { rejectWithValue }) => {  // Используем _ для пропуска первого параметра
+        try {
+            const response = await recipeApi.fetchCuisines();
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    }
+);
+
+export const fetchCategories = createAsyncThunk(
+    'recipes/fetchCategories',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await recipeApi.fetchCategories();
             return response;
         } catch (error) {
             return rejectWithValue(error.response.data);
@@ -57,6 +94,42 @@ export const fetchRecipeById = createAsyncThunk(
         }
     }
 );
+
+export const searchRecipesByIngredients = createAsyncThunk(
+    'recipes/searchRecipesByIngredients',
+    async ({ ingredientIds, categoryId, cuisineId }, { rejectWithValue }) => {
+        try {
+            const response = await recipeApi.searchRecipesByIngredients(ingredientIds, categoryId, cuisineId);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    }
+);
+
+export const getRecipesPortionsByIngredientsStrict = createAsyncThunk(
+    'recipes/getRecipesPortionsByIngredientsStrict',
+    async (ingredientsMap, { rejectWithValue }) => {
+        try {
+            const response = await recipeApi.countPortionsStrict(ingredientsMap);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    }
+)
+
+export const getRecipesPortionsByIngredientsPartial = createAsyncThunk(
+    'recipes/getRecipesPortionsByIngredientsPartial',
+    async (ingredientsMap, { rejectWithValue }) => {
+        try {
+            const response = await recipeApi.countPortionsPartial(ingredientsMap);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    }
+)
 
 // Создание рецепта
 export const createRecipe = createAsyncThunk(
@@ -151,9 +224,62 @@ const recipesSlice = createSlice({
                 state.error = action.payload?.message || 'Failed to fetch recipe';
             })
 
+            // ======================== fetchCuisines ========================
+            .addCase(fetchCuisines.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(fetchCuisines.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.cuisines = action.payload.data;
+            })
+            .addCase(fetchCuisines.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload?.message || 'Failed to fetch cuisines';
+            })
+
+            // ======================== fetchCategories ========================
+            .addCase(fetchCategories.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(fetchCategories.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.categories = action.payload.data;
+            })
+            .addCase(fetchCategories.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload?.message || 'Failed to fetch categories';
+            })
+
+            // ======================== searchRecipesByIngredients ========================
+            .addCase(searchRecipesByIngredients.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(searchRecipesByIngredients.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.recipes = action.payload;
+                // Сброс пагинации, так как это поиск
+                state.pagination = initialState.pagination;
+            })
+            .addCase(searchRecipesByIngredients.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload?.message || 'Failed to search recipes';
+            })
+
+            // ======================== getRecipesPortionsByIngredientsStrict ========================
+            .addCase(getRecipesPortionsByIngredientsStrict.fulfilled, (state, action) => {
+                // Здесь предполагается, что action.payload содержит информацию о порциях
+                // Обновляем соответствующие рецепты в state.recipes
+                // Реализация зависит от структуры ответа от API
+            })
+
+            // ======================== getRecipesPortionsByIngredientsPartial ========================
+            .addCase(getRecipesPortionsByIngredientsPartial.fulfilled, (state, action) => {
+                // Аналогично обработчику выше
+            })
+
             // ======================== createRecipe ========================
             .addCase(createRecipe.fulfilled, (state, action) => {
-                state.recipes.unshift(action.payload); // Добавляем в начало списка
+                state.recipes.unshift(action.payload);
             })
 
             // ======================== updateRecipe ========================
@@ -188,3 +314,5 @@ export const selectRecipesStatus = (state) => state.recipes.status;
 export const selectRecipesError = (state) => state.recipes.error;
 export const selectPagination = (state) => state.recipes.pagination;
 export const selectFilters = (state) => state.recipes.filters;
+export const selectCategories = (state) => state.recipes.categories;
+export const selectCuisines = (state) => state.recipes.cuisines;

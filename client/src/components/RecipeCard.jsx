@@ -1,22 +1,26 @@
-// RecipeCard.js
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const RecipeCard = ({ recipe }) => {
-    console.log("CARD   ", recipe)
-
+    const navigate = useNavigate();
     const [isHovered, setIsHovered] = useState(false);
     const [showIngredients, setShowIngredients] = useState(false);
     const [hoverTimer, setHoverTimer] = useState(null);
 
     const handleMouseEnter = () => {
         setIsHovered(true);
-        setHoverTimer(setTimeout(() => setShowIngredients(true), 500));
+        setHoverTimer(setTimeout(() => setShowIngredients(true), 0));
     };
 
     const handleMouseLeave = () => {
         setIsHovered(false);
         setShowIngredients(false);
         clearTimeout(hoverTimer);
+    };
+
+    const handleClick = () => {
+        // Переход на страницу рецепта при клике
+        navigate(`/recipes/${recipe.id}`);
     };
 
     useEffect(() => {
@@ -28,7 +32,7 @@ const RecipeCard = ({ recipe }) => {
         return ingredients.map(ing => ({
             name: ing.ingredient.name,
             quantity: ing.quantity,
-            //unit: ing.unit
+            unit: ing.unit?.shortName || ''
         }));
     };
 
@@ -40,6 +44,10 @@ const RecipeCard = ({ recipe }) => {
             className="recipe-card"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onClick={handleClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleClick()}
         >
             <div className={`recipe-image-container ${showIngredients ? 'show-ingredients' : ''}`}>
                 <img
@@ -54,7 +62,7 @@ const RecipeCard = ({ recipe }) => {
                         <ul className="ingredients-list">
                             {formatIngredients(recipe.ingredients).map((ingredient, index) => (
                                 <li key={index}>
-                                    {ingredient.quantity} {/*ingredient.unit*/} {ingredient.name}
+                                    {ingredient.name} - {ingredient.quantity} {ingredient.unit && `${ingredient.unit} `}
                                 </li>
                             ))}
                         </ul>
@@ -67,7 +75,11 @@ const RecipeCard = ({ recipe }) => {
                 <p className="recipe-description">{recipe.description?.substring(0, 100)}...</p>
                 <div className="ingredients-preview">
                     {previewIngredients.map((ing, i) => (
-                        <span key={i}>{ing.quantity} {/*ing.unit*/} {ing.name}</span>
+                        <span key={i}>
+                            {console.log(ing)}
+                            {ing.name} - {ing.quantity} {ing.unit && `${ing.unit} `}
+                            {i < previewIngredients.length - 1 && ', '}
+                        </span>
                     ))}
                     {remainingIngredients > 0 && (
                         <span className="more-ingredients"> и ещё {remainingIngredients}...</span>

@@ -1,12 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Masonry from 'react-masonry-css';
 import Header from '../components/Header';
 import RecipeCard from '../components/RecipeCard';
 import {
     fetchRecipes,
+    fetchCategories,
+    fetchCuisines,
     selectAllRecipes,
     selectRecipesStatus,
+    selectCategories,
+    selectCuisines,
     selectRecipesError,
     selectPagination,
     selectFilters,
@@ -14,6 +18,7 @@ import {
     resetFilters,
     setPage
 } from '../store/slices/recipesSlice';
+import SearchByIngredientsCount from '../components/SearchByIngredientsCount';
 
 const AllRecipe = () => {
     const dispatch = useDispatch();
@@ -22,6 +27,9 @@ const AllRecipe = () => {
     const error = useSelector(selectRecipesError);
     const pagination = useSelector(selectPagination);
     const filters = useSelector(selectFilters);
+    const categories = useSelector(selectCategories);
+    const cuisines = useSelector(selectCuisines);
+    const [loading, setLoading] = useState(false);
 
     const { page: currentPage, limit, total, totalPages } = pagination;
 
@@ -32,38 +40,67 @@ const AllRecipe = () => {
         500: 1,
     };
 
-    // Загрузка рецептов при монтировании и изменении фильтров/страницы
     useEffect(() => {
-        dispatch(fetchRecipes({
-            page: currentPage,
-            limit,
-            ...filters
-        }));
+        dispatch(fetchCategories());
+        dispatch(fetchCuisines());
+    }, [dispatch]);
+
+    useEffect(() => {
+        const loadRecipes = async () => {
+            setLoading(true);
+            try {
+                await dispatch(fetchRecipes({
+                    page: currentPage,
+                    limit,
+                    ...filters
+                })).unwrap();
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadRecipes();
     }, [dispatch, currentPage, limit, filters]);
 
     const handleSearch = (searchTerm) => {
-        dispatch(setFilters({ searchTerm }));
+        dispatch(setFilters({ searchTerm, page: 1 }));
     };
 
     const handleFilterChange = (newFilters) => {
-        dispatch(setFilters(newFilters));
-        dispatch(setPage(1)); // Сбрасываем на первую страницу при изменении фильтров
+        dispatch(setFilters({ ...newFilters, page: 1 }));
     };
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
             dispatch(setPage(newPage));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
     const handleResetFilters = () => {
         dispatch(resetFilters());
-        dispatch(setPage(1));
     };
+
+    const handleCategorySelect = (categoryId) => {
+        dispatch(setFilters({
+            category: filters.category === categoryId ? null : categoryId,
+            page: 1
+        }));
+    };
+
+    const handleCuisineSelect = (cuisineId) => {
+        dispatch(setFilters({
+            cuisine: filters.cuisine === cuisineId ? null : cuisineId,
+            page: 1
+        }));
+    };
+
+    const isCategoryActive = (categoryId) => filters.category === categoryId;
+    const isCuisineActive = (cuisineId) => filters.cuisine === cuisineId;
 
     let content;
 
-    if (status === 'loading') {
+    if (status === 'loading' || loading) {
         content = <div className="loading">Загрузка рецептов...</div>;
     } else if (status === 'failed') {
         content = <div className="error">{error}</div>;
@@ -104,16 +141,19 @@ const AllRecipe = () => {
     }
 
     return (
-        <div>
+        <div className="all-recipe-page">
             <Header />
             <main>
                 <h1>Самые лучшие рецепты здесь</h1>
+
+                <SearchByIngredientsCount />
 
                 <div className="main-browse">
                     <input
                         type="text"
                         placeholder="Найти самые лучшие рецепты"
                         onChange={(e) => handleSearch(e.target.value)}
+                        value={filters.searchTerm || ''}
                     />
 
                     <div className="filters">
@@ -136,6 +176,38 @@ const AllRecipe = () => {
                         <button onClick={handleResetFilters}>Сбросить фильтры</button>
                     </div>
                 </div>
+
+                {/* Фильтры по категориям */}
+                <div className="category-filters-section">
+                    <h3 className="filter-subtitle">Категории:</h3>
+                    <div className="category-chips-container">
+                        {categories.map(category => (
+                            <button
+                                key={category.id}
+                                className={`category-chip ${isCategoryActive(category.id) ? 'category-chip-active' : ''}`}
+                                onClick={() => handleCategorySelect(category.id)}
+                            >
+                                {category.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Фильтры по кухням */}
+                {/* <div className="cuisine-filters-section">
+                    <h3 className="filter-subtitle">Кухни:</h3>
+                    <div className="cuisine-chips-container">
+                        {cuisines.map(cuisine => (
+                            <button
+                                key={cuisine.id}
+                                className={`cuisine-chip ${isCuisineActive(cuisine.id) ? 'cuisine-chip-active' : ''}`}
+                                onClick={() => handleCuisineSelect(cuisine.id)}
+                            >
+                                {cuisine.name}
+                            </button>
+                        ))}
+                    </div>
+                </div> */}
 
                 {content}
             </main>

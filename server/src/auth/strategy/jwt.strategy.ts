@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') { // Явное указание имени стратегии
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     constructor(
         private readonly configService: ConfigService,
         private readonly prisma: DatabaseService

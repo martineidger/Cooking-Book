@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAllergenDto } from '../dto/allergen/create-allergen.dto';
 import { UpdateAllergenDto } from '../dto/allergen/update-allergen.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { Allergen } from '@prisma/client';
 
 @Injectable()
 export class AllergenService {
@@ -25,5 +26,43 @@ export class AllergenService {
 
   remove(id: string) {
     return `This action removes a #${id} allergen`;
+  }
+
+  async getAllergensFromRecipe(recipeId: string): Promise<Allergen[]> {
+    const recipe = await this.prisma.recipe.findUnique({
+      where: { id: recipeId },
+      include: {
+        ingredients: {
+          include: {
+            ingredient: {
+              include: {
+                allergens: {
+                  include: {
+                    allergen: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!recipe) {
+      throw new NotFoundException('Рецепт не найден');
+    }
+
+    const allergenMap = new Map<string, Allergen>();
+
+    recipe.ingredients.forEach(recipeIngredient => {
+      recipeIngredient.ingredient.allergens?.forEach(ingredientAllergen => {
+        const allergen = ingredientAllergen.allergen;
+        if (!allergenMap.has(allergen.id)) {
+          allergenMap.set(allergen.id, allergen);
+        }
+      });
+    });
+
+    return Array.from(allergenMap.values());
   }
 }

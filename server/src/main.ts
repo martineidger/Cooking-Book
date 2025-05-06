@@ -11,12 +11,7 @@ async function bootstrap() {
     next();
   });
 
-  app.enableCors(/*{
-    origin: true, // или конкретные домены ['http://localhost:3000', 'https://yourdomain.com']
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
-    allowedHeaders: 'Content-Type, Authorization, X-Requested-With',
-  }*/);
+  app.enableCors();
 
   await app.listen(process.env.PORT ?? 3000);
 }
