@@ -6,15 +6,30 @@ export const fetchIngredients = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await api.getIngredients();
-            return Array.isArray(response?.data) ? response.data : [];
+            return response.data
         } catch (error) {
             return rejectWithValue(error.response?.data || 'Failed to load ingredients');
         }
     }
 );
 
+export const fetchIngredientUnits = createAsyncThunk(
+    'ingredients/fetchIngredientUnits',
+    async (_, { rejectWithValue }) => {
+        try {
+
+            const response = await api.fetchIngredientUnits();
+            console.log('FETCH UNIT', response)
+            return response
+        } catch (err) {
+            return rejectWithValue(err.response?.data || err.message);
+        }
+    }
+);
+
 const initialState = {
-    items: [],
+    ingredients: [],
+    units: [],
     loading: false,
     error: null
 };
@@ -31,9 +46,18 @@ const ingredientsSlice = createSlice({
             })
             .addCase(fetchIngredients.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = action.payload;
+                state.ingredients = action.payload;
             })
             .addCase(fetchIngredients.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(fetchIngredientUnits.fulfilled, (state, action) => {
+                state.loading = false;
+                state.status = 'succeeded';
+                state.units = action.payload;
+            })
+            .addCase(fetchIngredientUnits.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

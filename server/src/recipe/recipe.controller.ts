@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query, Patch, ParseArrayPipe, ValidationPipe, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Query, Patch, ParseArrayPipe, ValidationPipe, UseGuards, HttpException, HttpStatus, UploadedFile, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { CountPortionsDto } from '../dto/recipe/count-portions.dto';
 import { RecipeService } from './recipe.service';
 import { CreateRecipeDto } from '../dto/recipe/create-recipe.dto';
@@ -13,10 +13,10 @@ import { Public } from 'src/auth/decorators/public.decorator';
 import { ServingsService } from './servings/servings.service';
 import { AdditionalService } from './additional/additional.service';
 import { PortionsResponseDto } from 'src/dto/recipe/portions-responce.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 
 @Controller('recipes')
-@Public()
 export class RecipeController {
   constructor(
     private readonly recipeService: RecipeService,
@@ -24,17 +24,29 @@ export class RecipeController {
     private readonly additionalService: AdditionalService
   ) { }
 
-  @Post('notes')
+  @Post('note')
   async createNote(@Body() createNoteDto: CreateNoteDto): Promise<Note> {
     return await this.additionalService.addNote(createNoteDto);
   }
 
+  @UseInterceptors(FilesInterceptor('stepImages'))
   @Post()
-  async create(@Body() createRecipeDto: CreateRecipeDto): Promise<Recipe> {
-    return await this.recipeService.create(createRecipeDto);
+  async create(
+    @Body() createRecipeDto: CreateRecipeDto,
+    @UploadedFiles() stepImages: Array<Express.Multer.File>,
+    @UploadedFile() mainImage: Express.Multer.File) {
+    if (stepImages && stepImages.length > 0) {
+      createRecipeDto.steps?.forEach((step, index) => {
+        if (stepImages[index]) {
+          step.image = stepImages[index];
+        }
+      });
+      return await this.recipeService.create(createRecipeDto, mainImage);
+    }
   }
 
   @Get('with-ingredients')
+  @Public()
   async findRecipesByIngredients(
     @Query('ingredientIds', new ParseArrayPipe({ items: String, separator: ',' }))
     ingredientIds: string[],
@@ -49,6 +61,7 @@ export class RecipeController {
   }
 
   @Get('count-portions')
+  @Public()
   async findMany(
     @Query(new ValidationPipe({ transform: true })) query: CountPortionsDto,
   ): Promise<{
@@ -79,6 +92,7 @@ export class RecipeController {
   }
 
   @Get('count-portions-partial')
+  @Public()
   async findPartialMatches(
     @Query(new ValidationPipe({ transform: true })) query: CountPortionsDto,
   ): Promise<PortionsResponseDto[]> {
@@ -91,6 +105,7 @@ export class RecipeController {
   }
 
   @Get(':id/steps/:stepNumber')
+  @Public()
   async getRecipeStep(
     @Param('id') id: string,
     @Param('stepNumber') stepNumber: number
@@ -99,6 +114,7 @@ export class RecipeController {
   }
 
   @Get(':id')
+  @Public()
   // @Roles(Role.Admin)
   async findOne(@Param('id') id: string): Promise<{ recipe: Recipe; allergens: Allergen[] }> {
     return await this.recipeService.findOne(String(id));
@@ -133,6 +149,7 @@ export class RecipeController {
   // }
 
   @Get()
+  @Public()
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
@@ -170,5 +187,17 @@ export class RecipeController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<Recipe> {
     return await this.recipeService.remove(String(id));
+  }
+
+  @Get(':id/notes')
+  @Public()
+  async getRecipeNotes(@Param('id') id: string, @Query('userId') userId?: string) {
+    return await this.additionalService.getRecipeNotes({ recipeId: id, userId: userId });
+  }
+
+  @Get('user/:userId')
+  @Public()
+  async getUserRecipes(@Param('userId') id: string, @Query('page') page: string, @Query('limit') limit: string) {
+    return this.recipeService.getUserRecipes(id, +page, +limit);
   }
 }

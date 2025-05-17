@@ -8,14 +8,23 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  username      String         @unique
-  email         String         @unique
-  password      String
-  role          Role           @default(User)
+  id       String @id @default(uuid())
+  username String @unique
+  email    String @unique
+  password String
+
+  avatarUrl String?
+
+  createdAt DateTime @default(now())
+
+  role          Role               @default(User)
   recipes       Recipe[]
   subscriptions Subscription[]
   notes         Note[]
+  collections   RecipeCollection[]
+  Favorite      Favorite[]
+  following     UserSubscription[] @relation("UserFollowing")
+  followers     UserSubscription[] @relation("UserFollowers")
 }
 
 enum Role {
@@ -23,10 +32,25 @@ enum Role {
   User
 }
 
+model UserSubscription {
+  id          String   @id @default(uuid())
+  followerId  String // ID пользователя, который подписывается
+  followingId String // ID пользователя, на которого подписываются
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id])
+  following User @relation("UserFollowing", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
 model Recipe {
   id          String               @id @default(uuid())
   title       String
   description String?
+  imageUrl    String?
   steps       CookingStep[]
   userId      String
   ingredients IngredientOnRecipe[]
@@ -35,8 +59,12 @@ model Recipe {
   cuisineId   String?
   categories  CategoryOnRecipe[]
 
-  user  User   @relation(fields: [userId], references: [id])
-  notes Note[]
+  createdAt DateTime @default(now())
+
+  user               User                 @relation(fields: [userId], references: [id])
+  notes              Note[]
+  RecipeOnCollection RecipeOnCollection[]
+  Favorite           Favorite[]
 
   @@unique([userId, title])
 }
@@ -46,7 +74,7 @@ model CookingStep {
   recipeId    String
   title       String
   description String?
-  image       String?
+  imageUrl    String?
   order       Int
   durationMin Int
 
@@ -70,20 +98,6 @@ model IngredientCategory {
   Ingredient Ingredient[]
 }
 
-// model IngredientOnRecipe {
-//   id               String  @id @default(uuid())
-//   recipeId         String?
-//   ingredientId     String
-//   quantity         Float
-//   ingredientUnitId String
-
-//   unit       IngredientUnit @relation(fields: [ingredientUnitId], references: [id])
-//   recipe     Recipe?        @relation(fields: [recipeId], references: [id])
-//   ingredient Ingredient     @relation(fields: [ingredientId], references: [id])
-
-//   @@unique([recipeId, ingredientId])
-// }
-
 model IngredientOnRecipe {
   id               String  @id @default(uuid())
   recipeId         String?
@@ -91,21 +105,12 @@ model IngredientOnRecipe {
   quantity         Float   @default(1.0)
   ingredientUnitId String
 
-  // Удалено baseQuantity (лучше вычислять на лету)
   unit       IngredientUnit @relation(fields: [ingredientUnitId], references: [id])
   recipe     Recipe?        @relation(fields: [recipeId], references: [id])
   ingredient Ingredient     @relation(fields: [ingredientId], references: [id])
 
   @@unique([recipeId, ingredientId])
 }
-
-// model IngredientUnit {
-//   id          String @id @default(uuid())
-//   name        String @unique
-//   gramsAmount Float
-
-//   IngredientOnRecipe IngredientOnRecipe[]
-// }
 
 model IngredientUnit {
   id         String   @id @default(uuid())
@@ -115,12 +120,10 @@ model IngredientUnit {
   baseUnitId String?
   multiplier Float?   @default(1.0)
 
-  // Отношения
   baseUnit     IngredientUnit?      @relation("BaseUnits", fields: [baseUnitId], references: [id])
   derivedUnits IngredientUnit[]     @relation("BaseUnits")
   ingredients  IngredientOnRecipe[]
 
-  // Удалено UnitConversion[]
   @@index([unitType])
   @@index([baseUnitId])
 }
@@ -136,12 +139,16 @@ model Cuisine {
   id   String @id @default(uuid())
   name String @unique
 
+  description String?
+
   recipes Recipe[]
 }
 
 model Category {
   id   String @id @default(uuid())
   name String @unique
+
+  description String?
 
   recipes      CategoryOnRecipe[]
   Subscription Subscription[]
@@ -159,12 +166,15 @@ model CategoryOnRecipe {
 }
 
 model Subscription {
-  id         String @id @default(uuid())
+  id         String   @id @default(uuid())
   userId     String
   categoryId String
+  createdAt  DateTime @default(now())
 
   user     User     @relation(fields: [userId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId])
 }
 
 model Allergen {
@@ -193,12 +203,51 @@ enum Severity {
 }
 
 model Note {
-  id       String  @id @default(uuid())
-  text     String
-  isPublic Boolean
-  userId   String
-  recipeId String
+  id        String   @id @default(uuid())
+  text      String
+  isPublic  Boolean
+  userId    String
+  recipeId  String
+  createdAt DateTime @default(now())
 
   user   User   @relation(fields: [userId], references: [id])
   recipe Recipe @relation(fields: [recipeId], references: [id])
+}
+
+model RecipeCollection {
+  id        String   @id @default(uuid())
+  name      String
+  isPublic  Boolean
+  createdAt DateTime @default(now())
+
+  RecipeOnCollection RecipeOnCollection[]
+  User               User?                @relation(fields: [userId], references: [id])
+  userId             String?
+}
+
+model RecipeOnCollection {
+  id                 String @id @default(uuid())
+  recipeId           String
+  recipeCollectionId String
+
+  recipe     Recipe           @relation(fields: [recipeId], references: [id])
+  collection RecipeCollection @relation(fields: [recipeCollectionId], references: [id])
+
+  @@unique([recipeId, recipeCollectionId])
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  recipeId  String
+  createdAt DateTime @default(now())
+  notes     String?
+  status    String? // "favorite" | "want_to_try"
+
+  user   User   @relation(fields: [userId], references: [id])
+  recipe Recipe @relation(fields: [recipeId], references: [id])
+
+  @@unique([userId, recipeId])
+  @@index([userId])
+  @@index([recipeId])
 }

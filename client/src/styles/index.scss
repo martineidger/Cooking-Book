@@ -2,9 +2,12 @@
 @use 'auth.scss';
 @use 'register.scss';
 @use 'mainPage.scss';
+@use 'usersPage.scss';
 @use 'recipePage.scss';
 @use 'header.scss';
 @use 'recipeCard.scss';
+@use 'profile.scss';
+@use 'createRecipe.scss';
 
 * {
     margin: 0;

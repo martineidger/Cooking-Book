@@ -1,8 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { CuisineService } from './cuisine.service';
 import { CreateBaseElement } from 'src/dto/base/create-base-element.dto';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('cuisines')
+@Public()
 export class CuisineController {
   constructor(private readonly cuisineService: CuisineService) { }
 

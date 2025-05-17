@@ -23,6 +23,8 @@ const RecipeCard = ({ recipe }) => {
         navigate(`/recipes/${recipe.id}`);
     };
 
+
+
     useEffect(() => {
         return () => clearTimeout(hoverTimer);
     }, [hoverTimer]);
@@ -39,6 +41,8 @@ const RecipeCard = ({ recipe }) => {
     const previewIngredients = formatIngredients(recipe.ingredients).slice(0, 2);
     const remainingIngredients = recipe.ingredients.length - 2;
 
+
+
     return (
         <div
             className="recipe-card"
@@ -52,6 +56,7 @@ const RecipeCard = ({ recipe }) => {
             <div className={`recipe-image-container ${showIngredients ? 'show-ingredients' : ''}`}>
                 <img
                     src={recipe.image || 'img/default-img.jpg'}
+                    //src={ind === 3 || ind === 6 || ind === 4 ? 'img/def2.jpg' : 'img/default-img.jpg'}
                     alt={recipe.title}
                     className="recipe-image"
                 />
@@ -73,10 +78,10 @@ const RecipeCard = ({ recipe }) => {
             <div className="recipe-info">
                 <h3 className="recipe-title">{recipe.title}</h3>
                 <p className="recipe-description">{recipe.description?.substring(0, 100)}...</p>
+                <p className="recipe-author" onClick={() => navigate(`profile/${recipe.user.id}`)}>{recipe.user?.username}</p>
                 <div className="ingredients-preview">
                     {previewIngredients.map((ing, i) => (
                         <span key={i}>
-                            {console.log(ing)}
                             {ing.name} - {ing.quantity} {ing.unit && `${ing.unit} `}
                             {i < previewIngredients.length - 1 && ', '}
                         </span>

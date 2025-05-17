@@ -34,9 +34,7 @@ export class IngredientService {
         return await this.prisma.ingredientCategory.findMany();
     }
 
-    async findAllUnits() {
-        return await this.prisma.ingredientUnit.findMany();
-    }
+
 
     async findAll() {
         return await this.prisma.ingredient.findMany();

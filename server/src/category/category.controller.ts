@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CategoryService } from './category.service';
-//import { UpdateCategoryDto } from '../dto/category/update-category.dto';
 import { CreateBaseElement } from 'src/dto/base/create-base-element.dto';
 import { CreateSubscriptionDto } from 'src/dto/subscription/create-subscription.dto';
 import { Subscription } from '@prisma/client';
@@ -13,9 +12,14 @@ export class CategoryController {
 
   @Post('subscribe')
   async createSubscription(
-    @Query('categoryId') categoryId: string, @Query('userId') userId: string
+    @Body() subscribeDto: CreateSubscriptionDto
   ): Promise<Subscription> {
-    return await this.categoryService.createSubscription(categoryId, userId);
+    return await this.categoryService.createSubscription(subscribeDto);
+  }
+
+  @Get('sub/get-recipes')
+  async getRecipesBySub(@Query('userId') id: string) {
+    return this.categoryService.getRecipesByUserSubscriptions(id);
   }
 
   @Post()
@@ -31,6 +35,11 @@ export class CategoryController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.categoryService.findOne(id);
+  }
+
+  @Get('for-user/:id')
+  async getUserSubscriptions(@Param('id') id: string) {
+    return await this.categoryService.getUserSubscriptions(id);
   }
 
   // @Patch(':id')

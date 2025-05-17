@@ -47,12 +47,13 @@ export const authApi = {
 
     async fetchCurrentUser() {
         try {
-            //const response = await http.get('/users/me');
             const id = localStorage.getItem('userId');
             console.log("USER   ", id)
             const response = await http.get(`users/${id}`)
             localStorage.setItem('userRole', response.data.role)
-            console.log("RESPONCE    ", response)
+            console.log("RESPONCE    ", response.data)
+            this.isAuthenticated = (response.status === 200) ? true : false
+
             return response.data;
         } catch (error) {
             this.clearAuthData();
@@ -61,17 +62,21 @@ export const authApi = {
     },
 
     setAuthData({ access_token, refresh_token, id }) {
+        console.log('SET ', access_token, refresh_token)
         localStorage.setItem('accessToken', access_token);
         localStorage.setItem('refreshToken', refresh_token);
+        this.isAuthenticated = true;
         if (id) {
             localStorage.setItem('userId', id);
         }
     },
 
     clearAuthData() {
+        console.log('CLEAR')
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        localStorage.removeItem('currentUser');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userRole');
     },
 
     getAccessToken() {
@@ -81,5 +86,7 @@ export const authApi = {
     getCurrentUser() {
         const user = localStorage.getItem('currentUser');
         return user ? JSON.parse(user) : null;
-    }
+    },
+
+    isAuthenticated: false
 };

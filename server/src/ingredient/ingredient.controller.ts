@@ -5,21 +5,21 @@ import { Ingredient, IngredientCategory, IngredientUnit } from '@prisma/client';
 import { CreateBaseElement } from 'src/dto/base/create-base-element.dto';
 import { CreateIngredientUnitDto } from 'src/dto/ingredient/create-ingredient-unit.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { IngredientUnitService } from './unit/ingredient-unit.service';
 
-@Controller('ingredients')
 @Public()
+@Controller('ingredients')
+
 export class IngredientController {
-  constructor(private readonly ingredientService: IngredientService) { }
+  constructor(
+    private readonly ingredientService: IngredientService,
+    private readonly unitService: IngredientUnitService
+  ) { }
 
   @Post('category')
   async createCategory(@Body() createCategoryDto: CreateBaseElement): Promise<IngredientCategory> {
     return this.ingredientService.createCategory(createCategoryDto);
   }
-
-  // @Post('unit')
-  // async createUnit(@Body() createUnitDto: CreateIngredientUnitDto): Promise<IngredientUnit> {
-  //   return this.ingredientService.createUnit(createUnitDto);
-  // }
 
   @Post()
   async create(@Body() createIngredientDto: CreateIngredientDto): Promise<Ingredient> {
@@ -31,15 +31,19 @@ export class IngredientController {
     return await this.ingredientService.findAllCategories();
   }
 
+  @Get('unit')
+  async findAllUnits() {
+    console.log("UNIT WIJEFKN")
+    //return { unit: '222' }
+    return await this.unitService.findAllUnits();
+  }
+
   @Get(':id')
   async findIngredient(@Param('id') id: string) {
     return await this.ingredientService.findIngredient(id);
   }
 
-  @Get('unit')
-  async findAllUnits() {
-    return await this.ingredientService.findAllUnits();
-  }
+
 
   @Get()
   async findAll() {

@@ -10,6 +10,7 @@ import { ServingsModule } from './servings/servings.module';
 import { AdditionalModule } from './additional/additional.module';
 import { IngredientUnitModule } from 'src/ingredient/unit/ingredient-unit.module';
 import { AllergenModule } from 'src/allergen/allergen.module';
+import { PhotosModule } from 'src/photos/photos.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AllergenModule } from 'src/allergen/allergen.module';
     AdditionalModule,
     IngredientUnitModule,
     AllergenModule,
+    PhotosModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       global: true,

@@ -13,7 +13,7 @@ export class CuisineService {
   }
 
   findAll() {
-    return this.prisma.recipe.findMany();
+    return this.prisma.cuisine.findMany();
   }
 
   findOne(id: number) {

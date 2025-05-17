@@ -63,6 +63,7 @@ export const fetchCuisines = createAsyncThunk(
     async (_, { rejectWithValue }) => {  // Используем _ для пропуска первого параметра
         try {
             const response = await recipeApi.fetchCuisines();
+            console.log('CUIS SL', response)
             return response;
         } catch (error) {
             return rejectWithValue(error.response.data);
@@ -75,6 +76,7 @@ export const fetchCategories = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await recipeApi.fetchCategories();
+            console.log('CATF', response)
             return response;
         } catch (error) {
             return rejectWithValue(error.response.data);
@@ -100,7 +102,7 @@ export const searchRecipesByIngredients = createAsyncThunk(
     async ({ ingredientIds, categoryId, cuisineId }, { rejectWithValue }) => {
         try {
             const response = await recipeApi.searchRecipesByIngredients(ingredientIds, categoryId, cuisineId);
-            return response;
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data);
         }
@@ -112,7 +114,7 @@ export const getRecipesPortionsByIngredientsStrict = createAsyncThunk(
     async (ingredientsMap, { rejectWithValue }) => {
         try {
             const response = await recipeApi.countPortionsStrict(ingredientsMap);
-            return response;
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data);
         }
@@ -124,7 +126,7 @@ export const getRecipesPortionsByIngredientsPartial = createAsyncThunk(
     async (ingredientsMap, { rejectWithValue }) => {
         try {
             const response = await recipeApi.countPortionsPartial(ingredientsMap);
-            return response;
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data);
         }
@@ -136,6 +138,7 @@ export const createRecipe = createAsyncThunk(
     'recipes/createRecipe',
     async (recipeData, { rejectWithValue }) => {
         try {
+            console.log("CREATE", recipeData)
             const response = await recipeApi.createRecipe(recipeData);
             return response;
         } catch (error) {
@@ -150,7 +153,7 @@ export const updateRecipe = createAsyncThunk(
     async ({ id, recipeData }, { rejectWithValue }) => {
         try {
             const response = await recipeApi.updateRecipe(id, recipeData);
-            return response;
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data);
         }
@@ -163,7 +166,7 @@ export const deleteRecipe = createAsyncThunk(
     async (id, { rejectWithValue }) => {
         try {
             const response = await recipeApi.deleteRecipe(id);
-            return { id, ...response };
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data);
         }
@@ -230,7 +233,7 @@ const recipesSlice = createSlice({
             })
             .addCase(fetchCuisines.fulfilled, (state, action) => {
                 state.status = 'succeeded';
-                state.cuisines = action.payload.data;
+                state.cuisines = action.payload;
             })
             .addCase(fetchCuisines.rejected, (state, action) => {
                 state.status = 'failed';
@@ -243,7 +246,7 @@ const recipesSlice = createSlice({
             })
             .addCase(fetchCategories.fulfilled, (state, action) => {
                 state.status = 'succeeded';
-                state.categories = action.payload.data;
+                state.categories = action.payload;
             })
             .addCase(fetchCategories.rejected, (state, action) => {
                 state.status = 'failed';
@@ -279,6 +282,7 @@ const recipesSlice = createSlice({
 
             // ======================== createRecipe ========================
             .addCase(createRecipe.fulfilled, (state, action) => {
+                console.log('ADD SLICE', action.payload)
                 state.recipes.unshift(action.payload);
             })
 
@@ -306,6 +310,7 @@ const recipesSlice = createSlice({
 // Экспортируем actions и reducer
 export const { setFilters, resetFilters, setPage } = recipesSlice.actions;
 export default recipesSlice.reducer;
+//export const { resetRecipeState } = recipesSlice.actions;
 
 // ======================== Селекторы ========================
 export const selectAllRecipes = (state) => state.recipes.recipes;

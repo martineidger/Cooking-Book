@@ -34,7 +34,9 @@ export const fetchCurrentUser = createAsyncThunk(
     'auth/fetchCurrentUser',
     async (_, { rejectWithValue }) => {
         try {
-            return await authApi.fetchCurrentUser();
+            console.log("FETCH USER SLICE")
+            const responce = await authApi.fetchCurrentUser();
+            return responce
         } catch (error) {
             return rejectWithValue(error.message);
         }
@@ -44,10 +46,10 @@ export const fetchCurrentUser = createAsyncThunk(
 const authSlice = createSlice({
     name: 'auth',
     initialState: {
-        user: authApi.getCurrentUser(),
+        user: null,
         isLoading: false,
         error: null,
-        isAuthenticated: !!authApi.getAccessToken()
+        isAuthenticated: false
     },
     reducers: {
         logout: (state) => {

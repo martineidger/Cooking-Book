@@ -259,7 +259,6 @@ const SearchByIngredientsCount = () => {
         loading: ingredientsLoading,
         error: ingredientsError
     } = useSelector(state => state.ingredients);
-
     const navigate = useNavigate();
 
     const [ingredientInputs, setIngredientInputs] = useState([{ id: '', quantity: 1 }]);

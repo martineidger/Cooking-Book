@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBaseElement } from 'src/dto/base/create-base-element.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { CreateSubscriptionDto } from 'src/dto/subscription/create-subscription.dto';
 //import { UpdateCategoryDto } from '../dto/category/update-category.dto';
 
 @Injectable()
@@ -23,9 +24,6 @@ export class CategoryService {
     })
   }
 
-  // update(id: number, updateCategoryDto: UpdateCategoryDto) {
-  //   return `This action updates a #${id} category`;
-  // }
 
   async remove(id: string) {
     return this.prisma.category.delete({
@@ -33,11 +31,42 @@ export class CategoryService {
     });
   }
 
-  async createSubscription(categoryId: string, userId: string) {
+  async createSubscription(subscribeDto: CreateSubscriptionDto) {
     return await this.prisma.subscription.create({
       data: {
-        category: { connect: { id: categoryId } },
-        user: { connect: { id: userId } }
+        category: { connect: { id: subscribeDto.categoryId } },
+        user: { connect: { id: subscribeDto.userId } }
+      }
+    })
+  }
+
+  async getRecipesByUserSubscriptions(userId: string) {
+    const categories = await this.prisma.subscription.findMany({
+      where: {
+        userId: userId
+      },
+      select: {
+        categoryId: true
+      }
+    })
+    const categoryIds = categories.map(c => c.categoryId);
+
+    return await this.prisma.recipe.findMany({
+      where: {
+        categories: {
+          some: { categoryId: { in: categoryIds } }
+        }
+      }
+    })
+  }
+
+  async getUserSubscriptions(userId: string) {
+    return this.prisma.subscription.findMany({
+      where: {
+        userId: userId
+      },
+      include: {
+        category: true
       }
     })
   }

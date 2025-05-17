@@ -12,6 +12,16 @@ const ingredientsApi = {
             console.error('Error fetching ingredients:', error);
             return { data: [] };
         }
+    },
+    fetchIngredientUnits: async () => {
+        try {
+            const response = await http.get('ingredients/unit');
+            console.log(response)
+            return response.data;
+        } catch (error) {
+            console.error('Error getting ingredients/unit:', error);
+            throw error;
+        }
     }
 };
 

@@ -24,6 +24,11 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
+  @Get(':id/profile')
+  findProfile(@Param('id') id: string) {
+    return this.userService.findProfile(id);
+  }
+
 
   @Get('me')
   async findMe(@CurrentUser() user: User) {

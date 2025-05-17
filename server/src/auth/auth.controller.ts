@@ -6,11 +6,11 @@ import { RegisterDto } from 'src/dto/auth/register.dto';
 import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
+@Public()
 export class AuthController {
   constructor(private authService: AuthService) { }
 
   @Post('login')
-  @Public()
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(
       loginDto.email,
@@ -23,7 +23,6 @@ export class AuthController {
   }
 
   @Post('register')
-  @Public()
   async register(@Body() registerDto: RegisterDto) {
     const canRegister = await this.authService.validateUserForRegistry(registerDto.email)
     if (!canRegister) {
@@ -35,7 +34,6 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @Public()
   async refreshTokens(@Body('refreshToken') refreshToken: string) {
     return this.authService.refreshTokens(refreshToken);
   }

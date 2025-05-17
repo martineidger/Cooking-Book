@@ -12,6 +12,14 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transform: translateY(-5px);
     }
+
+    .recipe-author {
+        font-style: italic;
+
+        :hover {
+            text-decoration: underline;
+        }
+    }
 }
 
 .recipe-image-container {

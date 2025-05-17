@@ -16,7 +16,8 @@ import { JwtStrategy } from './auth/strategy/jwt.strategy';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
 import { ErrorMiddleware } from './common/middlewares/error-exception.middleware';
-import { AdviceModule } from './advice/advice.module';
+import { CollectionModule } from './collection/collection.module';
+import { FollowingModule } from './following/following.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { AdviceModule } from './advice/advice.module';
     UserModule,
     CuisineModule,
     AllergenModule,
-    AdviceModule,
+    CollectionModule,
+    FollowingModule,
 
   ],
   controllers: [AppController, TestController],

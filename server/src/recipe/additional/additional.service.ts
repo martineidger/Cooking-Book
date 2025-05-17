@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { CookingStep } from "@prisma/client";
 import { DatabaseService } from "src/database/database.service";
 import { CreateNoteDto } from "src/dto/note/create-note.dto";
+import { GetRecipeNotesDto } from "src/dto/recipe/get-recipe-notes.dto";
+import { CreateSubscriptionDto } from "src/dto/subscription/create-subscription.dto";
 
 @Injectable()
 export class AdditionalService {
@@ -26,23 +28,21 @@ export class AdditionalService {
         })
     }
 
-    // async addRecipeToFavorites(userId: string, recipeId: string) {
-    //     const favoriteRecipe = await this.prisma.favoriteRecipe.create({
-    //         data: {
-    //             userId: userId,
-    //             recipeId: recipeId,
-    //         },
-    //     });
-    //     return favoriteRecipe;
-    // }
-
-    async subscribeToCategory(userId, categoryId) {
-        const subscription = await this.prisma.subscription.create({
-            data: {
-                userId: userId,
-                categoryId: categoryId,
+    async getRecipeNotes(getNotesDto: GetRecipeNotesDto) {
+        return await this.prisma.note.findMany({
+            where: {
+                recipeId: getNotesDto.recipeId,
+                OR: [{
+                    isPublic: true
+                }, {
+                    userId: getNotesDto.userId
+                }]
             },
-        });
-        return subscription;
+            include: {
+                user: true
+            }
+        })
     }
+
+
 }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
+import Header from '../components/Header';
 
 const AuthPage = () => {
     const location = useLocation();
@@ -28,36 +29,39 @@ const AuthPage = () => {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-container">
-                <div className="form-wrapper">
-                    <div className={`form-slider ${activeForm}`}>
-                        <div className="slide">
-                            <LoginForm />
-                        </div>
-                        <div className="slide">
-                            <RegisterForm />
+        <>
+            <Header isLoginPage={true} />
+            <div className="auth-page">
+                <div className="auth-container">
+                    <div className="form-wrapper">
+                        <div className={`form-slider ${activeForm}`}>
+                            <div className="slide">
+                                <LoginForm />
+                            </div>
+                            <div className="slide">
+                                <RegisterForm />
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="auth-toggle">
-                    <button
-                        className={`toggle-btn ${activeForm === 'login' ? 'active' : ''}`}
-                        onClick={() => handleFormToggle('login')}
-                    >
-                        Login
-                    </button>
-                    <button
-                        className={`toggle-btn ${activeForm === 'register' ? 'active' : ''}`}
-                        onClick={() => handleFormToggle('register')}
-                    >
-                        Register
-                    </button>
-                    <div className={`slider-track ${activeForm}`}></div>
+                    <div className="auth-toggle">
+                        <button
+                            className={`toggle-btn ${activeForm === 'login' ? 'active' : ''}`}
+                            onClick={() => handleFormToggle('login')}
+                        >
+                            Login
+                        </button>
+                        <button
+                            className={`toggle-btn ${activeForm === 'register' ? 'active' : ''}`}
+                            onClick={() => handleFormToggle('register')}
+                        >
+                            Register
+                        </button>
+                        <div className={`slider-track ${activeForm}`}></div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

@@ -2,8 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { AllergenService } from './allergen.service';
 import { CreateAllergenDto } from '../dto/allergen/create-allergen.dto';
 import { UpdateAllergenDto } from '../dto/allergen/update-allergen.dto';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('allergens')
+@Public()
 export class AllergenController {
   constructor(private readonly allergenService: AllergenService) { }
 

@@ -14,9 +14,8 @@ export class CreateCookingStepDto {
     @IsNotEmpty()
     description: string;
 
-    @IsString()
     @IsOptional()
-    image?: string;
+    image?: Express.Multer.File;
 
     @IsInt()
     @IsOptional()

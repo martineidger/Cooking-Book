@@ -14,8 +14,55 @@ export class UserService {
     })
   }
 
+  async findProfile(userId) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        createdAt: true,
+        role: true,
+        _count: {
+          select: {
+            recipes: true,
+            collections: {
+              where: {
+                isPublic: true
+              }
+            },
+            following: true,
+            followers: true
+          }
+        }
+      }
+    })
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      createdAt: user.createdAt,
+      role: user.role,
+      stats: {
+        recipeCount: user._count.recipes,
+        publicCollectionCount: user._count.collections,
+        followingCount: user._count.following,
+        followersCount: user._count.followers
+      }
+    }
+  }
+
   async findAll() {
-    return await this.prisma.user.findMany()
+    return await this.prisma.user.findMany({
+      where: {
+        role: { not: 'Admin' }
+      }
+    })
   }
 
   async findOneByEmail(email: string) {

@@ -109,5 +109,11 @@ export class IngredientUnitService {
             quantity: convertedQuantity,
             unit: toUnit
         };
+
+    }
+    async findAllUnits() {
+        const units = await this.prisma.ingredientUnit.findMany();
+        console.log("UNITS", units)
+        return units;
     }
 }

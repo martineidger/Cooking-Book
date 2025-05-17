@@ -74,7 +74,7 @@ export class AuthService {
         //refresh_token: this.generateRefreshToken(user.id),
       };
     } catch (e) {
-      throw new Error('Invalid refresh token');
+      throw new Error('Invalid refresh token', e);
     }
   }
 }

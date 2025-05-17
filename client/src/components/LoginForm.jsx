@@ -12,20 +12,10 @@ const LoginForm = () => {
     const { isLoading, error, isAuthenticated } = useSelector(state => state.auth);
     const navigate = useNavigate();
 
-    // Редирект после успешной аутентификации
-    // useEffect(() => {
-    //     if (isAuthenticated) {
-    //         navigate('/');
-    //     }
-    // }, [isAuthenticated, navigate]);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Сброс предыдущих ошибок
         setFormErrors({});
 
-        // Валидация полей
         const errors = {};
         if (!email.trim()) errors.email = 'Email is required';
         if (!password.trim()) errors.password = 'Password is required';
@@ -38,20 +28,15 @@ const LoginForm = () => {
         try {
             const result = await dispatch(loginUser({ email, password }));
 
-            // Обработка ошибок из API
-            if (result.error) {
-                console.log("FORM  ", result)
-                setFormErrors({ apiError: result.payload || 'Login failed' });
-            }
-
-            if (isAuthenticated) {
+            if (result.meta.requestStatus === 'fulfilled') {
                 navigate('/');
+            } else {
+                setFormErrors({ apiError: result.payload || 'Login failed' });
             }
         } catch (err) {
             setFormErrors({ apiError: 'An unexpected error occurred' });
         }
     };
-
     return (
         <form onSubmit={handleSubmit} className="login-form">
             <h2>Login</h2>

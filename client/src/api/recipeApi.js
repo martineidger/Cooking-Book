@@ -30,7 +30,7 @@ class RecipeApi {
             ...(searchTerm && { searchTerm }), // Добавляем поисковый запрос
         };
 
-        const response = await axios.get(API_BASE_URL, { params });
+        const response = await http.get(API_BASE_URL, { params });
         return response.data;
     }
 
@@ -46,7 +46,7 @@ class RecipeApi {
      * Создать рецепт
      */
     async createRecipe(recipeData) {
-        const response = await axios.post(API_BASE_URL, recipeData);
+        const response = await http.post(API_BASE_URL, recipeData);
         return response.data; // Recipe
     }
 
@@ -196,11 +196,23 @@ class RecipeApi {
     }
 
     async fetchCategories() {
-        return http.get('/categories');
+        try {
+            const response = await http.get('/categories');
+            return response.data;
+        } catch (error) {
+            console.error('Error getting categories:', error);
+            throw error;
+        }
     }
 
     async fetchCuisines() {
-        return http.get('/categories');
+        try {
+            const response = await http.get('/cuisines');
+            return response.data;
+        } catch (error) {
+            console.error('Error getting cuisines:', error);
+            throw error;
+        }
     }
 
 }
