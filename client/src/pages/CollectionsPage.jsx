@@ -28,7 +28,7 @@ const CollectionsPage = () => {
 
     return (
         <div>
-            <Header />
+            {/* <Header /> */}
             <Typography variant="h4" gutterBottom>
                 Мои коллекции
             </Typography>

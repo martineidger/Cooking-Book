@@ -24,6 +24,20 @@ export const fetchUserProfile = createAsyncThunk(
     }
 );
 
+export const updateUserProfile = createAsyncThunk(
+    'profile/updateUserProfile',
+    async (userData, { rejectWithValue }) => {
+        try {
+            const userId = localStorage.getItem('userId')
+            console.log("UPDATE USER", userData)
+            const response = await http.patch(`users/${userId}`, { username: userData.username });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    }
+);
+
 export const fetchUserCollections = createAsyncThunk(
     'profile/fetchUserCollections',
     async ({ userId, initialLoad = false }) => {
@@ -108,6 +122,16 @@ const profileSlice = createSlice({
                 state.subscriptions = action.payload.subscriptions;
             })
             .addCase(fetchUserProfile.rejected, (state) => {
+                state.isLoading = false;
+            })
+            .addCase(updateUserProfile.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(updateUserProfile.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.profileUser = { ...action.payload };
+            })
+            .addCase(updateUserProfile.rejected, (state) => {
                 state.isLoading = false;
             })
             .addCase(fetchUserCollections.pending, (state) => {

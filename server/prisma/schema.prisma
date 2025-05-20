@@ -13,7 +13,8 @@ model User {
   email    String @unique
   password String
 
-  avatarUrl String?
+  imageUrl String?
+  imageId  String?
 
   createdAt DateTime @default(now())
 
@@ -51,17 +52,18 @@ model Recipe {
   title       String
   description String?
   imageUrl    String?
+  imageId     String?
   steps       CookingStep[]
   userId      String
   ingredients IngredientOnRecipe[]
   portions    Int
-  cuisine     Cuisine?             @relation(fields: [cuisineId], references: [id])
+  cuisine     Cuisine?             @relation(fields: [cuisineId], references: [id], onDelete: Cascade)
   cuisineId   String?
   categories  CategoryOnRecipe[]
 
   createdAt DateTime @default(now())
 
-  user               User                 @relation(fields: [userId], references: [id])
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes              Note[]
   RecipeOnCollection RecipeOnCollection[]
   Favorite           Favorite[]
@@ -75,10 +77,11 @@ model CookingStep {
   title       String
   description String?
   imageUrl    String?
+  imageId     String?
   order       Int
   durationMin Int
 
-  recipe         Recipe  @relation(fields: [recipeId], references: [id])
+  recipe         Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   cookingPhaseId String?
 }
 
@@ -88,7 +91,7 @@ model Ingredient {
 
   ingredientCategoryId String
   allergens            IngredientAllergen[]
-  category             IngredientCategory   @relation(fields: [ingredientCategoryId], references: [id])
+  category             IngredientCategory   @relation(fields: [ingredientCategoryId], references: [id], onDelete: Cascade)
   recipes              IngredientOnRecipe[]
 }
 
@@ -105,9 +108,9 @@ model IngredientOnRecipe {
   quantity         Float   @default(1.0)
   ingredientUnitId String
 
-  unit       IngredientUnit @relation(fields: [ingredientUnitId], references: [id])
-  recipe     Recipe?        @relation(fields: [recipeId], references: [id])
-  ingredient Ingredient     @relation(fields: [ingredientId], references: [id])
+  unit       IngredientUnit @relation(fields: [ingredientUnitId], references: [id], onDelete: Cascade)
+  recipe     Recipe?        @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient     @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
 
   @@unique([recipeId, ingredientId])
 }
@@ -120,7 +123,7 @@ model IngredientUnit {
   baseUnitId String?
   multiplier Float?   @default(1.0)
 
-  baseUnit     IngredientUnit?      @relation("BaseUnits", fields: [baseUnitId], references: [id])
+  baseUnit     IngredientUnit?      @relation("BaseUnits", fields: [baseUnitId], references: [id], onDelete: Cascade)
   derivedUnits IngredientUnit[]     @relation("BaseUnits")
   ingredients  IngredientOnRecipe[]
 
@@ -159,8 +162,8 @@ model CategoryOnRecipe {
   recipeId   String
   categoryId String
 
-  recipe   Recipe   @relation(fields: [recipeId], references: [id])
-  category Category @relation(fields: [categoryId], references: [id])
+  recipe   Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([recipeId, categoryId])
 }
@@ -171,8 +174,8 @@ model Subscription {
   categoryId String
   createdAt  DateTime @default(now())
 
-  user     User     @relation(fields: [userId], references: [id])
-  category Category @relation(fields: [categoryId], references: [id])
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([userId, categoryId])
 }
@@ -186,8 +189,8 @@ model Allergen {
 
 model IngredientAllergen {
   id             String     @id @default(uuid())
-  ingredient     Ingredient @relation(fields: [ingredientId], references: [id])
-  allergen       Allergen   @relation(fields: [allergenId], references: [id])
+  ingredient     Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  allergen       Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
   ingredientId   String
   allergenId     String
   customSeverity Severity? // Переопределение серьёзности для конкретного ингредиента
@@ -210,8 +213,8 @@ model Note {
   recipeId  String
   createdAt DateTime @default(now())
 
-  user   User   @relation(fields: [userId], references: [id])
-  recipe Recipe @relation(fields: [recipeId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 }
 
 model RecipeCollection {
@@ -221,7 +224,7 @@ model RecipeCollection {
   createdAt DateTime @default(now())
 
   RecipeOnCollection RecipeOnCollection[]
-  User               User?                @relation(fields: [userId], references: [id])
+  User               User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String?
 }
 
@@ -230,8 +233,8 @@ model RecipeOnCollection {
   recipeId           String
   recipeCollectionId String
 
-  recipe     Recipe           @relation(fields: [recipeId], references: [id])
-  collection RecipeCollection @relation(fields: [recipeCollectionId], references: [id])
+  recipe     Recipe           @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  collection RecipeCollection @relation(fields: [recipeCollectionId], references: [id], onDelete: Cascade)
 
   @@unique([recipeId, recipeCollectionId])
 }
@@ -244,10 +247,16 @@ model Favorite {
   notes     String?
   status    String? // "favorite" | "want_to_try"
 
-  user   User   @relation(fields: [userId], references: [id])
-  recipe Recipe @relation(fields: [recipeId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, recipeId])
   @@index([userId])
   @@index([recipeId])
 }
+
+/**
+ * мвс, жизненный цикл мвс (фильтры, ) частичные представления, хэлперы, кастомные хэлперы,виды,
+ * маршрутизация,способы задания маршрутов, (мап контроллер роут) , взаимоствязь между контроллерами моделями,
+ * нескольк способов связи с моделью (все возможные), способы передачи параметров, как понимает какое представление ввызвать
+ */

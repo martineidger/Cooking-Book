@@ -12,7 +12,7 @@ export const authApi = {
             this.setAuthData(response.data);
             return response.data;
         } catch (error) {
-            this.clearAuthData();
+            //this.clearAuthData();
             throw error.response?.data || error;
         }
     },
@@ -24,7 +24,7 @@ export const authApi = {
             this.setAuthData(response.data);
             return response.data;
         } catch (error) {
-            this.clearAuthData();
+            //this.clearAuthData();
             throw error.response?.data || error;
         }
     },
@@ -36,7 +36,7 @@ export const authApi = {
             this.setAuthData(response.data);
             return response.data;
         } catch (error) {
-            this.clearAuthData();
+            //this.clearAuthData();
             throw error.response?.data || error;
         }
     },
@@ -56,7 +56,23 @@ export const authApi = {
 
             return response.data;
         } catch (error) {
-            this.clearAuthData();
+            //this.clearAuthData();
+            throw error.response?.data || error;
+        }
+    },
+
+    async deleteAccount(id) {
+        try {
+            console.log("DELETING USER   ", id)
+            const currentUserId = localStorage.getItem('userId')
+            const response = await http.delete(`users/${id}`)
+            if (id == currentUserId) {
+                this.clearAuthData();
+                this.isAuthenticated = false
+            }
+
+            return response.data;
+        } catch (error) {
             throw error.response?.data || error;
         }
     },

@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -14,10 +14,15 @@ import { ConfigModule } from '@nestjs/config';
 import { TestController } from './test.controller';
 import { JwtStrategy } from './auth/strategy/jwt.strategy';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ErrorMiddleware } from './common/middlewares/error-exception.middleware';
 import { CollectionModule } from './collection/collection.module';
 import { FollowingModule } from './following/following.module';
+import { RecipePhotosMiddleware } from './common/middlewares/cloudinary-upload.middleware';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { CloudinaryInterceptor } from './common/interceptors/photo.interceptor';
 
 @Module({
   imports: [
@@ -32,6 +37,18 @@ import { FollowingModule } from './following/following.module';
     AllergenModule,
     CollectionModule,
     FollowingModule,
+    MulterModule.register({
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const randomName = Array(32).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('');
+          return cb(null, `${randomName}${extname(file.originalname)}`);
+        }
+      }),
+      limits: {
+        fileSize: 10 * 1024 * 1024,
+      },
+    }),
 
   ],
   controllers: [AppController, TestController],
@@ -42,13 +59,19 @@ import { FollowingModule } from './following/following.module';
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
-    }
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CloudinaryInterceptor,
+    },
   ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(ErrorMiddleware)
-      .forRoutes('*'); // Применяем ко всем маршрутам
+      .forRoutes('*');
+
+
   }
 }

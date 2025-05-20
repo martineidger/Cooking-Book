@@ -43,6 +43,19 @@ export const fetchCurrentUser = createAsyncThunk(
     }
 );
 
+export const deleteAccount = createAsyncThunk(
+    'auth/deleteAccount',
+    async ({ id }, { rejectWithValue }) => {
+        try {
+            console.log("DELETE USER ACCOUNT")
+            const responce = await authApi.deleteAccount(id);
+            return responce
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: {

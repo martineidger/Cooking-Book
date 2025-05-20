@@ -1,0 +1,184 @@
+.category-cuisine-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+
+    .hero-section {
+        height: 400px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 30px;
+
+        .hero-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            color: white;
+
+            h1 {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+            }
+
+            .description {
+                font-size: 1.2rem;
+                max-width: 80%;
+                margin-bottom: 20px;
+            }
+        }
+    }
+
+    .content-tabs {
+        display: flex;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 30px;
+
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            position: relative;
+
+            &.active {
+                font-weight: bold;
+
+                &:after {
+                    content: '';
+                    position: absolute;
+                    bottom: -1px;
+                    left: 0;
+                    right: 0;
+                    height: 3px;
+                    background: #ff6b6b;
+                }
+            }
+        }
+    }
+
+    .recipes-count {
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .masonry-grid {
+        display: flex;
+        margin-left: -15px;
+        width: auto;
+
+        .masonry-column {
+            padding-left: 15px;
+            background-clip: padding-box;
+        }
+    }
+
+    .recipe-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin: 40px 0;
+
+        button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    .details-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+
+        .details-content {
+            h2 {
+                margin-bottom: 20px;
+            }
+
+            p {
+                line-height: 1.6;
+                margin-bottom: 20px;
+            }
+        }
+
+        .features-list {
+            margin: 20px 0;
+            padding-left: 20px;
+
+            li {
+                margin-bottom: 10px;
+            }
+        }
+    }
+
+    .stats {
+        display: flex;
+        gap: 30px;
+        margin: 30px 0;
+
+        .stat-item {
+            text-align: center;
+
+            .stat-value {
+                display: block;
+                font-size: 2rem;
+                font-weight: bold;
+                color: #ff6b6b;
+            }
+
+            .stat-label {
+                font-size: 0.9rem;
+                color: #666;
+            }
+        }
+    }
+
+    .related-items {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        height: fit-content;
+    }
+}
+
+@media (max-width: 768px) {
+    .category-cuisine-page {
+        .details-section {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-overlay {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .description {
+                max-width: 100%;
+            }
+        }
+    }
+}

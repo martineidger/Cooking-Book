@@ -2,11 +2,10 @@ import { PartialType } from '@nestjs/mapped-types';
 import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
 import { CreateCookingStepDto } from '../step/create-cooking-step.dto';
 
-//export class UpdateRecipeDto extends PartialType(CreateRecipeDto) {}
 export class UpdateRecipeDto {
     @IsString()
-    @IsNotEmpty()
-    title: string;
+    @IsOptional()
+    title?: string;
 
     @IsString()
     @IsOptional()
@@ -16,9 +15,15 @@ export class UpdateRecipeDto {
     @IsOptional()
     steps?: CreateCookingStepDto[];
 
-    @IsArray()
-    @IsOptional()
-    ingredients?: { ingredientId: string }[];
+    // @IsArray()
+    // @IsOptional()
+    // ingredients?: { ingredientId: string }[];
+    ingredients?: {
+        ingredientId: string;
+        quantity: number;
+        ingredientUnitId?: string;
+    }[];
+    ingredientsToDisconnect?: string[];
 
     @IsString()
     @IsOptional()
@@ -32,11 +37,25 @@ export class UpdateRecipeDto {
     @IsOptional()
     categoriesToDisconnect?: string[]; // IDs of categories to disconnect
 
-    @IsArray()
-    @IsOptional()
-    ingredientsToDisconnect?: string[]; // IDs of ingredients to disconnect
+    // @IsArray()
+    // @IsOptional()
+    // ingredientsToDisconnect?: string[]; // IDs of ingredients to disconnect
 
-    @IsArray()
+    // @IsArray()
+    // @IsOptional()
+    // stepsToDelete?: string[]; // IDs of steps to delete
     @IsOptional()
-    stepsToDelete?: string[]; // IDs of steps to delete
+    mainPhoto?: {
+        url: string;
+        publicId: string;
+    };
+
+    @IsOptional()
+    oldMainPhotoPublicId?: string; // ID старого фото для удаления
+
+    @IsOptional()
+    stepsToDelete?: string[]; // ID шагов для удаления
+
+    @IsOptional()
+    portions?: string;
 }

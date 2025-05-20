@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRecipeDto } from '../dto/recipe/create-recipe.dto';
 import { UpdateRecipeDto } from '../dto/recipe/update-recipe.dto';
 import { DatabaseService } from 'src/database/database.service';
@@ -72,48 +72,8 @@ export class RecipeService {
     }
   }
 
-  // async getUserRecipes(id: string, page: number = 1, limit: number = 5) {
-  //   const offset = (page - 1) * limit;
-  //   const allCount = await this.prisma.recipe.count({
-  //     where: {
-  //       userId: id
-  //     }
-  //   });
 
-  //   const recipes = await this.prisma.recipe.findMany({
-  //     where: {
-  //       userId: id
-  //     },
-  //     include: {
-  //       ingredients: {
-  //         include: {
-  //           ingredient: true,
-  //           unit: true
-  //         }
-  //       },
-  //       cuisine: true,
-  //       categories: true,
-  //       user: true
-  //     },
-  //     skip: offset,
-  //     take: limit,
-  //     orderBy: {
-  //       createdAt: 'desc' // Добавляем сортировку по дате создания
-  //     }
-  //   })
-
-  //   return {
-  //     recipes: recipes,
-  //     hasMore: allCount - (page * limit)
-  //   }
-  // }
-
-  async create(createRecipeDto: CreateRecipeDto, photo) {
-    let photoPath;
-    if (photo) {
-      console.log("ADDING PHOTO")
-      photoPath = (await this.photosService.uploadImage(photo)).url;
-    }
+  async create(createRecipeDto: CreateRecipeDto) {
     // Валидация категорий
     if (createRecipeDto.categories) {
       const categories = await this.prisma.category.findMany({
@@ -133,16 +93,20 @@ export class RecipeService {
         title: createRecipeDto.title,
         ...(createRecipeDto.cuisineId && { cuisine: { connect: { id: createRecipeDto.cuisineId } } }),
         description: createRecipeDto.description,
+        ...(createRecipeDto.mainPhoto && {
+          imageUrl: createRecipeDto.mainPhoto.url,
+          imageId: createRecipeDto.mainPhoto.publicId
+        }),
         categories: {
           create: createRecipeDto.categories?.map(cat => ({
             category: { connect: { id: cat.categoryId } }
           }))
         },
-        portions: createRecipeDto.portions,
+        portions: +createRecipeDto.portions,
         ingredients: {
           create: await Promise.all(createRecipeDto.ingredients?.map(async ingr => ({
             ingredient: { connect: { id: ingr.ingredientId } },
-            quantity: ingr.quantity,
+            quantity: +ingr.quantity,
             unit: { connect: { id: ingr.ingredientUnitId } },
             //baseQuantity: await this.unitService.calculateBaseQuantity(ingr.quantity, ingr.ingredientUnitId)
           })) || [])
@@ -151,11 +115,14 @@ export class RecipeService {
           create: createRecipeDto.steps?.map(step => ({
             title: step.title,
             description: step.description,
-            order: step.order,
+            order: +step.order,
             durationMin: step.durationMin || 0,
+            ...(step.photo && {
+              imageUrl: step.photo.url,
+              imageId: step.photo.publicId
+            }),
           })) || [],
         },
-        imageUrl: photoPath
       },
       include: {
         ingredients: {
@@ -289,8 +256,8 @@ export class RecipeService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    categoryId?: string,
-    cuisineId?: string,
+    categoryIds?: string,
+    cuisineIds?: string,
     ingredientIds?: string[],
     sortBy?: string,
     sortOrder: 'asc' | 'desc' = 'asc',
@@ -302,12 +269,15 @@ export class RecipeService {
     limit: number,
     totalPages: number
   }> {
+
+    const categories = categoryIds?.split(',');
+    const cuisines = cuisineIds?.split(',');
     // 1. Подготавливаем условия для фильтрации (where)
     const where: Prisma.RecipeWhereInput = {
       AND: [
         {
-          ...(categoryId && { categories: { some: { categoryId } } }),
-          ...(cuisineId && { cuisineId }),
+          ...(categoryIds && { categories: { some: { categoryId: { in: categories } } } }),
+          ...(cuisineIds && { cuisineId: { in: cuisines } }),
           ...(ingredientIds && {
             ingredients: {
               some: {
@@ -335,10 +305,14 @@ export class RecipeService {
         case 'title':
           orderBy = { title: sortOrder };
           break;
+        case 'createdAt':
+          orderBy = { createdAt: sortOrder };
+          break;
+
 
         // Добавьте другие поддерживаемые поля сортировки
         default:
-          orderBy = { title: 'desc' }; // Сортировка по умолчанию
+          orderBy = { createdAt: 'desc' }; // Сортировка по умолчанию
       }
     }
 
@@ -398,53 +372,185 @@ export class RecipeService {
 
 
   async update(id: string, updateRecipeDto: UpdateRecipeDto): Promise<Recipe> {
+    // 1. Сначала удаляем связи, если нужно
+    // if (
+    //   updateRecipeDto.categoriesToDisconnect?.length ||
+    //   updateRecipeDto.ingredientsToDisconnect?.length
+    // ) {
+    //   await this.prisma.recipe.update({
+    //     where: { id },
+    //     data: {
+    //       categories: {
+    //         disconnect: updateRecipeDto.categoriesToDisconnect?.map(catId => ({
+    //           recipeId_categoryId: {
+    //             recipeId: id,
+    //             categoryId: catId
+    //           }
+
+    //         })) || [],
+    //       },
+    //       // ingredients: {
+    //       //   disconnect: updateRecipeDto.ingredientsToDisconnect?.map(ingrId => ({ id: ingrId })) || [],
+    //       // },
+    //     },
+    //   });
+    // }
+
+    if (updateRecipeDto.categoriesToDisconnect?.length) {
+      await this.prisma.categoryOnRecipe.deleteMany({
+        where: {
+          recipeId: id,
+          categoryId: {
+            in: updateRecipeDto.categoriesToDisconnect,
+          },
+        },
+      });
+    }
+
+    // 3. Добавьте новые категории
+    if (updateRecipeDto.categories?.length) {
+      await this.prisma.categoryOnRecipe.createMany({
+        data: updateRecipeDto.categories.map(category => ({
+          recipeId: id,
+          categoryId: category.categoryId, // Важно: передаем строку, а не объект
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    if (updateRecipeDto.ingredientsToDisconnect?.length) {
+      await this.prisma.ingredientOnRecipe.deleteMany({
+        where: {
+          recipeId: id,
+          ingredientId: { in: updateRecipeDto.ingredientsToDisconnect }
+        }
+      });
+    }
+
+    // 2. Обрабатываем новые/изменённые ингредиенты
+    if (updateRecipeDto.ingredients?.length) {
+      // Проверяем существование ингредиентов
+      const ingredientIds = updateRecipeDto.ingredients.map(i => i.ingredientId).filter(id => id !== undefined);;
+      const existingCount = await this.prisma.ingredient.count({
+        where: { id: { in: ingredientIds } }
+      });
+
+      if (existingCount !== ingredientIds.length) {
+        throw new BadRequestException('One or more ingredients not found');
+      }
+
+      // Обновляем/создаём связи
+      for (const ingr of updateRecipeDto.ingredients.filter(ing => ing.ingredientId !== undefined)) {
+        await this.prisma.ingredientOnRecipe.upsert({
+          where: {
+            recipeId_ingredientId: {
+              recipeId: id,
+              ingredientId: ingr.ingredientId
+            }
+          },
+          update: {
+            quantity: Number(ingr.quantity),
+            ingredientUnitId: ingr.ingredientUnitId
+          },
+          create: {
+            recipeId: id,
+            ingredientId: ingr.ingredientId,
+            quantity: Number(ingr.quantity),
+            ingredientUnitId: ingr.ingredientUnitId ?? ''
+          }
+        });
+      }
+    }
+
+    // 2. Теперь можно выполнять обновление с connect и другими полями
     return this.prisma.recipe.update({
       where: { id },
       data: {
         ...(updateRecipeDto.title && { title: updateRecipeDto.title }),
         ...(updateRecipeDto.description && { description: updateRecipeDto.description }),
-        ...(updateRecipeDto.cuisineId && { cuisine: { connect: { id: updateRecipeDto.cuisineId } } }),
-        categories: {
-          connect: updateRecipeDto.categories?.map(cat => ({
-            id: cat.categoryId
-          })) || [],
-          disconnect: updateRecipeDto.categoriesToDisconnect?.map(catId => ({
-            id: catId
-          })) || [],
-        },
-        ingredients: {
-          connect: updateRecipeDto.ingredients?.map(ingr => ({
-            id: ingr.ingredientId
-          })) || [],
-          disconnect: updateRecipeDto.ingredientsToDisconnect?.map(ingrId => ({
-            id: ingrId
-          })) || [],
-        },
+        ...(updateRecipeDto.cuisineId && {
+          cuisine: { connect: { id: updateRecipeDto.cuisineId } },
+        }),
+        ...(updateRecipeDto.portions && { portions: +updateRecipeDto.portions }),
+
+        // categories: updateRecipeDto.categories?.length
+        //   ? {
+        //     connect: updateRecipeDto.categories.map(cat => ({ id: cat.categoryId })),
+        //   }
+        //   : undefined,
+
+        // ingredients: updateRecipeDto.ingredients?.length
+        //   ? {
+        //     connect: updateRecipeDto.ingredients.map(ingr => ({ id: ingr.ingredientId })),
+        //   }
+        //   : undefined,
+
+
         steps: {
-          deleteMany: updateRecipeDto.stepsToDelete?.map(stepId => ({
-            id: stepId
-          })) || [],
-          create: updateRecipeDto.steps?.map(step => ({
-            title: step.title,
-            description: step.description,
-            order: step.order,
-            durationMin: step.durationMin || 0,
-          })) || [],
+          updateMany: updateRecipeDto.steps
+            ?.filter(step => step.id)
+            .map(step => ({
+              where: { id: step.id },
+              data: {
+                title: step.title,
+                description: step.description,
+                order: +step.order,
+                durationMin: Number(step.durationMin) ?? 0,
+                ...(step.photo && {
+                  imageUrl: step.photo.url,
+                  imageId: step.photo.publicId
+                }),
+                ...(step.oldPhotoPublicId && !step.photo && {
+                  imageUrl: null,
+                  imageId: null
+                })
+              }
+            })) || [],
+          deleteMany: updateRecipeDto.stepsToDelete?.map(id => ({ id })) || [],
+          // create: updateRecipeDto.steps?.filter(step => step !== undefined)
+          //   .map(step => ({
+          //     title: step.title,
+          //     description: step.description,
+          //     order: +step.order,
+          //     durationMin: Number(step.durationMin) || 0,
+          //     imageId: step.photo?.publicId,
+          //     imageUrl: step.photo?.url,
+          //   })) || [],
+          create: updateRecipeDto.steps
+            ?.filter(step => !step.id)
+            .map(step => ({
+              title: step.title,
+              description: step.description,
+              order: +step.order,
+              durationMin: Number(step.durationMin) || 0,
+              ...(step.photo && {
+                imageUrl: step.photo.url,
+                imageId: step.photo.publicId
+              })
+            })) || []
         },
+
+        imageId: updateRecipeDto.mainPhoto?.publicId ?? null,
+        imageUrl: updateRecipeDto.mainPhoto?.url ?? null,
       },
     });
   }
 
+
   async remove(id: string): Promise<Recipe> {
+    const recipe = await this.prisma.recipe.findUnique({
+      where: { id },
+      select: {
+        imageId: true
+      }
+    });
+
+    if (recipe?.imageId) {
+      await this.photosService.deleteImage(recipe.imageId);
+    }
+
     return this.prisma.recipe.delete({
-      where: { id: id.toString() },
+      where: { id: id },
     });
   }
-
-
-
-
-
-
-
 }

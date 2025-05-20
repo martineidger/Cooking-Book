@@ -15,11 +15,11 @@ const RegisterForm = () => {
     const { isLoading, error, isAuthenticated } = useSelector(state => state.auth);
     const navigate = useNavigate();
 
-    // useEffect(() => {
-    //     if (isAuthenticated) {
-    //         navigate('/');
-    //     }
-    // }, [isAuthenticated, navigate]);
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/');
+        }
+    }, [isAuthenticated, navigate]);
 
     const handleChange = (e) => {
         setFormData({
@@ -54,12 +54,10 @@ const RegisterForm = () => {
         try {
             const result = await dispatch(registerUser(formData));
 
-            if (result.error) {
-                setFormErrors({ apiError: result.payload || 'Registration failed' });
-            }
-
-            if (isAuthenticated) {
+            if (result.meta.requestStatus === 'fulfilled') {
                 navigate('/');
+            } else {
+                setFormErrors({ apiError: result.payload || 'Register failed' });
             }
         } catch (err) {
             setFormErrors({ apiError: 'An unexpected error occurred' });

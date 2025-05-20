@@ -16,10 +16,34 @@ export class CuisineService {
     return this.prisma.cuisine.findMany();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.cuisine.findUnique({
-      where: { id: id.toString() },
+      where: { id: id },
     });
+  }
+
+  async findDetail(id: string) {
+    const cuisine = await this.prisma.cuisine.findFirst({
+      where: { id: id },
+      include: {
+        recipes: {
+          include: {
+            ingredients: {
+              include: {
+                ingredient: true,
+                unit: true
+              }
+            }
+
+          }
+        }
+      }
+    })
+
+    return {
+      ...cuisine,
+      recipesCount: cuisine?.recipes.length
+    }
   }
 
   // update(id: number, updateCuisineDto: UpdateCuisineDto) {

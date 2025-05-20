@@ -17,9 +17,26 @@ export class CategoryController {
     return await this.categoryService.createSubscription(subscribeDto);
   }
 
+  @Delete('subscribe')
+  async deleteSubscription(
+    @Body() subscribeDto: CreateSubscriptionDto
+  ): Promise<Subscription> {
+    return await this.categoryService.deleteSubscription(subscribeDto);
+  }
+
+  @Get('check')
+  async checkSubscription(@Query('userId') userId: string, @Query('categoryId') catId: string) {
+    return this.categoryService.checkSub(userId, catId);
+  }
+
   @Get('sub/get-recipes')
   async getRecipesBySub(@Query('userId') id: string) {
     return this.categoryService.getRecipesByUserSubscriptions(id);
+  }
+
+  @Get(':id/detail')
+  async getDetails(@Param('id') id: string) {
+    return await this.categoryService.getDetail(id);
   }
 
   @Post()

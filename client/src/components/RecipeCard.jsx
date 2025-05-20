@@ -31,6 +31,7 @@ const RecipeCard = ({ recipe }) => {
 
     // Форматирование ингредиентов для API
     const formatIngredients = (ingredients) => {
+        //console.log(ingredients)
         return ingredients.map(ing => ({
             name: ing.ingredient.name,
             quantity: ing.quantity,
@@ -38,6 +39,7 @@ const RecipeCard = ({ recipe }) => {
         }));
     };
 
+    //console.log('RECIPE', recipe)
     const previewIngredients = formatIngredients(recipe.ingredients).slice(0, 2);
     const remainingIngredients = recipe.ingredients.length - 2;
 
@@ -55,8 +57,7 @@ const RecipeCard = ({ recipe }) => {
         >
             <div className={`recipe-image-container ${showIngredients ? 'show-ingredients' : ''}`}>
                 <img
-                    src={recipe.image || 'img/default-img.jpg'}
-                    //src={ind === 3 || ind === 6 || ind === 4 ? 'img/def2.jpg' : 'img/default-img.jpg'}
+                    src={recipe.imageUrl || 'img/default-img.jpg'}
                     alt={recipe.title}
                     className="recipe-image"
                 />

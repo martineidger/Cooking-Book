@@ -30,7 +30,7 @@ const UsersPage = () => {
 
     return (
         <>
-            <Header />
+            {/* <Header /> */}
             <div className="users-page">
                 <div className="users-header">
                     <h1>Все пользователи</h1>

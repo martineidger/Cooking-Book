@@ -12,8 +12,8 @@ class RecipeApi {
     async getAllRecipes({
         page = 1,
         limit = 10,
-        categoryId,
-        cuisineId,
+        categoryIds,
+        cuisineIds,
         ingredientIds,
         sortBy,
         sortOrder = 'asc',
@@ -22,15 +22,16 @@ class RecipeApi {
         const params = {
             page,
             limit,
-            ...(categoryId && { categoryId }), // Добавляем только если есть значение
-            ...(cuisineId && { cuisineId }),
+            ...(categoryIds && { categoryIds }), // Добавляем только если есть значение
+            ...(cuisineIds && { cuisineIds }),
             ...(ingredientIds?.length && { ingredientIds: ingredientIds.join(',') }),
             ...(sortBy && { sortBy }),
             sortOrder,
             ...(searchTerm && { searchTerm }), // Добавляем поисковый запрос
         };
 
-        const response = await http.get(API_BASE_URL, { params });
+        const response = await http.get('recipes', { params });
+        console.log(response.data)
         return response.data;
     }
 
@@ -38,7 +39,7 @@ class RecipeApi {
      * Получить рецепт по ID
      */
     async getRecipeById(id) {
-        const response = await http.get(`${API_BASE_URL}/${id}`);
+        const response = await http.get(`recipes/${id}`);
         return response.data; // { recipe, allergens }
     }
 
@@ -46,7 +47,11 @@ class RecipeApi {
      * Создать рецепт
      */
     async createRecipe(recipeData) {
-        const response = await http.post(API_BASE_URL, recipeData);
+        const response = await http.post('/recipes', recipeData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
         return response.data; // Recipe
     }
 
@@ -54,7 +59,11 @@ class RecipeApi {
      * Обновить рецепт
      */
     async updateRecipe(id, recipeData) {
-        const response = await axios.put(`${API_BASE_URL}/${id}`, recipeData);
+        const response = await http.put(`/recipes/${id}`, recipeData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
         return response.data; // Recipe
     }
 
@@ -62,7 +71,7 @@ class RecipeApi {
      * Удалить рецепт
      */
     async deleteRecipe(id) {
-        const response = await axios.delete(`${API_BASE_URL}/${id}`);
+        const response = await http.delete(`${API_BASE_URL}/${id}`);
         return response.data; // Recipe
     }
 

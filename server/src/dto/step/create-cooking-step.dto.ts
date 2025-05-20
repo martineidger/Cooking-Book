@@ -1,6 +1,9 @@
 import { IsString, IsNotEmpty, IsOptional, IsArray, IsInt } from 'class-validator';
 
 export class CreateCookingStepDto {
+    @IsString()
+    @IsOptional()
+    id?: string
 
     @IsString()
     @IsNotEmpty()
@@ -15,7 +18,10 @@ export class CreateCookingStepDto {
     description: string;
 
     @IsOptional()
-    image?: Express.Multer.File;
+    photo?: {
+        url: string;
+        publicId: string;
+    };
 
     @IsInt()
     @IsOptional()
@@ -24,4 +30,5 @@ export class CreateCookingStepDto {
     @IsInt()
     @IsNotEmpty()
     order: number;
+    oldPhotoPublicId?: string;
 }

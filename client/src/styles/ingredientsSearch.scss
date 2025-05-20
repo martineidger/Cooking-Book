@@ -1,0 +1,273 @@
+// Основные стили компонента
+.search-by-ingredients {
+    position: relative;
+
+    // Стили для кнопки открытия панели
+    &__toggle-button {
+        position: fixed;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #1976d2;
+        color: white;
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
+        padding: 15px 5px;
+        z-index: 1000;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #1565c0;
+            right: 2px;
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        svg {
+            font-size: 1.5rem;
+        }
+    }
+
+    // Стили для выдвижной панели
+    &__drawer {
+        .MuiDrawer-paper {
+            width: 50%;
+            max-width: 500px;
+            min-width: 350px;
+            padding: 24px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #f9f9f9, #ffffff);
+            border-left: 1px solid rgba(0, 0, 0, 0.12);
+        }
+    }
+
+    // Стили для заголовка
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+        h5 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        button {
+            padding: 8px;
+        }
+    }
+
+    // Стили для переключателя режимов
+    &__mode-toggle {
+        margin-bottom: 24px;
+
+        .MuiToggleButtonGroup-root {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+
+            .MuiToggleButton-root {
+                flex: 1;
+                padding: 8px;
+                font-size: 0.875rem;
+                text-transform: none;
+
+                &.Mui-selected {
+                    background-color: #1976d2;
+                    color: white;
+
+                    &:hover {
+                        background-color: #1565c0;
+                    }
+                }
+            }
+        }
+
+        .mode-description {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: rgba(0, 0, 0, 0.6);
+        }
+    }
+
+    // Стили для полей ввода ингредиентов
+    &__ingredient-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        align-items: center;
+
+        .ingredient-autocomplete {
+            flex: 1;
+        }
+
+        .quantity-input {
+            width: 90px;
+        }
+
+        .unit-select {
+            min-width: 80px;
+        }
+
+        .remove-button {
+            color: #f44336;
+            padding: 8px;
+        }
+    }
+
+    // Стили для кнопки добавления
+    &__add-button {
+        margin-top: 8px;
+        margin-bottom: 24px;
+        border-style: dashed !important;
+
+        &:hover {
+            border-style: dashed !important;
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+    }
+
+    // Стили для кнопки подсчета
+    &__calculate-button {
+        margin-bottom: 24px;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: bold;
+        box-shadow: none;
+
+        &:hover {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+    }
+
+    // Стили для результатов
+    &__results {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        padding-right: 8px;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        h6 {
+            margin-bottom: 16px;
+        }
+    }
+
+    // Стили для карточки рецепта
+    &__recipe-card {
+        padding: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 16px;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .recipe-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .portion-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 0.875rem;
+        }
+
+        .missing-ingredients {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+            .missing-title {
+                font-size: 0.75rem;
+                color: rgba(0, 0, 0, 0.6);
+                margin-bottom: 8px;
+            }
+
+            .missing-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+
+                .MuiChip-root {
+                    height: 24px;
+                    font-size: 0.75rem;
+
+                    .MuiChip-label {
+                        padding-left: 8px;
+                        padding-right: 8px;
+                    }
+                }
+            }
+        }
+    }
+
+    // Стили для индикатора загрузки
+    &__loader {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0;
+    }
+
+    // Стили для затемнения фона
+    &__backdrop {
+        z-index: 1200;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+}
+
+// Адаптивные стили
+@media (max-width: 768px) {
+    .search-by-ingredients {
+        &__drawer {
+            .MuiDrawer-paper {
+                width: 80%;
+                min-width: 300px;
+            }
+        }
+
+        &__ingredient-row {
+            flex-wrap: wrap;
+
+            .ingredient-autocomplete {
+                width: 100%;
+            }
+
+            .quantity-input {
+                width: calc(50% - 44px);
+            }
+
+            .unit-select {
+                width: calc(50% - 44px);
+            }
+        }
+    }
+}

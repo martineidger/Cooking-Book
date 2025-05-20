@@ -1,6 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional, IsArray, IsNumber } from 'class-validator';
 import { CreateCookingStepDto } from '../step/create-cooking-step.dto';
 import { CreateIngredientToRecipeDto } from '../ingredient/create-ingredient-to-recipe.dto';
+import { Type } from 'class-transformer';
 
 export class CreateRecipeDto {
     @IsString()
@@ -20,6 +21,7 @@ export class CreateRecipeDto {
     steps?: CreateCookingStepDto[]
 
     @IsNumber()
+    @Type(() => Number)
     @IsNotEmpty()
     portions: number;
 
@@ -34,6 +36,12 @@ export class CreateRecipeDto {
     @IsArray()
     @IsOptional()
     categories?: { categoryId: string }[];
+
+    @IsOptional()
+    mainPhoto?: {
+        url: string;
+        publicId: string;
+    };
 
 
 }

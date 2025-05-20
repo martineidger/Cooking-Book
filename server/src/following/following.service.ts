@@ -7,6 +7,36 @@ import { CreateFollowingDto } from 'src/dto/following/create-following.dto';
 export class FollowingService {
   constructor(private readonly prisma: DatabaseService) { }
 
+  async findRecipes(id: string) {
+    const followings = await this.prisma.userSubscription.findMany({
+      where: {
+        followerId: id
+      },
+      select: {
+        followingId: true
+      }
+    })
+
+    return this.prisma.recipe.findMany({
+      where: {
+        userId: { in: followings.map(foll => foll.followingId) }
+      },
+      include: {
+        ingredients: {
+          include: {
+            ingredient: { select: { name: true } },
+            unit: true
+          }
+        },
+        cuisine: true,
+        categories: { include: { category: true } },
+        steps: { orderBy: { order: 'asc' } },
+        user: true
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+  }
+
   followUser(createFollowingDto: CreateFollowingDto) {
     return this.prisma.userSubscription.create({
       data: {
@@ -32,12 +62,17 @@ export class FollowingService {
   }
 
   async findUserFollowings(userId: string) {
+
     return await this.prisma.userSubscription.findMany({
       where: {
         followerId: userId
       },
       include: {
-        following: true
+        following: {
+          include: {
+            recipes: true
+          }
+        }
       }
     })
   }

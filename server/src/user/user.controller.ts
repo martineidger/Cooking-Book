@@ -37,27 +37,6 @@ export class UserController {
     return user;
   }
 
-  // @Get('me')
-  // async findMe(@Req() request: Request) {
-  //   const user = (request as any).user;
-
-  //   console.log("CURRENT CONTROLLER  ", user)
-  //   if (!user) {
-  //     throw new UnauthorizedException('User not authenticated');
-  //   }
-
-
-  //   return this.userService.findCurrentUser(user);
-  // }
-  // @Get('me')
-  // async getCurrentUser(@Req() req: Request) {
-  //   req.user содержит данные из JWT после AuthGuard
-  //   const user = await this.userService.findOne(req.user.sub);
-  //   Не возвращаем пароль
-  //   const { password, ...result } = user;
-  //   return result;
-  // }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);

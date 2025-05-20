@@ -37,6 +37,7 @@ const LoginForm = () => {
             setFormErrors({ apiError: 'An unexpected error occurred' });
         }
     };
+
     return (
         <form onSubmit={handleSubmit} className="login-form">
             <h2>Login</h2>

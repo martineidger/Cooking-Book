@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { recipeApi } from '../../api/recipeApi';
+import http from '../../api/http';
 
 // Состояние по умолчанию
 const initialState = {
@@ -13,10 +14,13 @@ const initialState = {
         total: 0,
         totalPages: 1,
     },
+    hasMore: true,
     filters: {
         searchTerm: '',
-        categoryId: null,
-        cuisineId: null,
+        // categoryId: null,
+        // cuisineId: null,
+        categoryIds: [],  // Теперь массив ID
+        cuisineIds: [],
         ingredientIds: [],
         sortBy: 'title',
         sortOrder: 'asc',
@@ -28,35 +32,35 @@ const initialState = {
 // ======================== Async Thunks ========================
 
 // Загрузка всех рецептов с пагинацией и фильтрами
-export const fetchRecipes = createAsyncThunk(
-    'recipes/fetchRecipes',
-    async ({
-        page = 1,
-        limit = 10,
-        categoryId,
-        cuisineId,
-        ingredientIds,
-        sortBy,
-        sortOrder,
-        searchTerm // Добавляем параметр поиска
-    }, { rejectWithValue }) => {
-        try {
-            const response = await recipeApi.getAllRecipes({
-                page,
-                limit,
-                categoryId,
-                cuisineId,
-                ingredientIds,
-                sortBy,
-                sortOrder,
-                searchTerm // Передаем в API
-            });
-            return response;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
-        }
-    }
-);
+// export const fetchRecipes = createAsyncThunk(
+//     'recipes/fetchRecipes',
+//     async ({
+//         page = 1,
+//         limit = 10,
+//         categoryId,
+//         cuisineId,
+//         ingredientIds,
+//         sortBy,
+//         sortOrder,
+//         searchTerm // Добавляем параметр поиска
+//     }, { rejectWithValue }) => {
+//         try {
+//             const response = await recipeApi.getAllRecipes({
+//                 page,
+//                 limit,
+//                 categoryId,
+//                 cuisineId,
+//                 ingredientIds,
+//                 sortBy,
+//                 sortOrder,
+//                 searchTerm // Передаем в API
+//             });
+//             return response;
+//         } catch (error) {
+//             return rejectWithValue(error.response?.data || error.message);
+//         }
+//     }
+// );
 
 export const fetchCuisines = createAsyncThunk(
     'recipes/fetchCuisines',
@@ -96,6 +100,7 @@ export const fetchRecipeById = createAsyncThunk(
         }
     }
 );
+
 
 export const searchRecipesByIngredients = createAsyncThunk(
     'recipes/searchRecipesByIngredients',
@@ -152,8 +157,10 @@ export const updateRecipe = createAsyncThunk(
     'recipes/updateRecipe',
     async ({ id, recipeData }, { rejectWithValue }) => {
         try {
+
             const response = await recipeApi.updateRecipe(id, recipeData);
-            return response.data;
+            console.log('UPDATE RETURN', response)
+            return { ...response.data, id: id };
         } catch (error) {
             return rejectWithValue(error.response.data);
         }
@@ -163,12 +170,95 @@ export const updateRecipe = createAsyncThunk(
 // Удаление рецепта
 export const deleteRecipe = createAsyncThunk(
     'recipes/deleteRecipe',
-    async (id, { rejectWithValue }) => {
+    async ({ id }, { rejectWithValue }) => {
         try {
+            console.log('DELETE SLICE', id)
             const response = await recipeApi.deleteRecipe(id);
-            return response.data;
+            console.log('DELETE REC', response)
+            return { ...response.data, id: id };
         } catch (error) {
             return rejectWithValue(error.response.data);
+        }
+    }
+);
+
+// export const loadMoreRecipes = createAsyncThunk(
+//     'recipes/loadMoreRecipes',
+//     async (_, { getState, rejectWithValue }) => {
+//         try {
+//             const state = getState().recipes;
+//             const nextPage = state.pagination.page + 1;
+
+//             const response = await recipeApi.getAllRecipes({
+//                 page: nextPage,
+//                 limit: state.pagination.limit,
+//                 categoryId: state.filters.categoryId,
+//                 cuisineId: state.filters.cuisineId,
+//                 ingredientIds: state.filters.ingredientIds,
+//                 sortBy: state.filters.sortBy,
+//                 sortOrder: state.filters.sortOrder,
+//                 searchTerm: state.filters.searchTerm
+//             });
+
+//             return response;
+//         } catch (error) {
+//             return rejectWithValue(error.response?.data || error.message);
+//         }
+//     }
+// );
+
+export const fetchRecipes = createAsyncThunk(
+    'recipes/fetchRecipes',
+    async ({
+        page = 1,
+        limit = 10,
+        categoryIds = [],
+        cuisineIds = [],
+        ingredientIds = [],
+        sortBy = 'title',
+        sortOrder = 'asc',
+        searchTerm = ''
+    }, { rejectWithValue }) => {
+        try {
+            const response = await recipeApi.getAllRecipes({
+                page,
+                limit,
+                categoryIds: categoryIds.join(','), // Преобразуем массив в строку
+                cuisineIds: cuisineIds.join(','),   // Преобразуем массив в строку
+                ingredientIds,
+                sortBy,
+                sortOrder,
+                searchTerm
+            });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+);
+
+// Аналогично изменяем loadMoreRecipes
+export const loadMoreRecipes = createAsyncThunk(
+    'recipes/loadMoreRecipes',
+    async (_, { getState, rejectWithValue }) => {
+        try {
+            const state = getState().recipes;
+            const nextPage = state.pagination.page + 1;
+
+            const response = await recipeApi.getAllRecipes({
+                page: nextPage,
+                limit: state.pagination.limit,
+                categoryIds: state.filters.categoryIds.join(','),
+                cuisineIds: state.filters.cuisineIds.join(','),
+                ingredientIds: state.filters.ingredientIds,
+                sortBy: state.filters.sortBy,
+                sortOrder: state.filters.sortOrder,
+                searchTerm: state.filters.searchTerm
+            });
+
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || error.message);
         }
     }
 );
@@ -181,8 +271,15 @@ const recipesSlice = createSlice({
     reducers: {
         // Синхронные редьюсеры для фильтров
         setFilters(state, action) {
-            state.filters = { ...state.filters, ...action.payload };
-            state.pagination.page = 1; // Сброс страницы при изменении фильтров
+            const { page, ...rest } = action.payload;
+            state.filters = { ...state.filters, ...rest };
+            state.hasMore = true; // Сброс флага при изменении фильтров
+
+            if (page !== undefined) {
+                state.pagination.page = page;
+            } else {
+                state.pagination.page = 1;
+            }
         },
         resetFilters(state) {
             state.filters = initialState.filters;
@@ -199,16 +296,51 @@ const recipesSlice = createSlice({
             .addCase(fetchRecipes.pending, (state) => {
                 state.status = 'loading';
             })
+            // .addCase(fetchRecipes.fulfilled, (state, action) => {
+            //     state.status = 'succeeded';
+            //     state.recipes = action.payload.recipes;
+            //     state.pagination = {
+            //         page: action.payload.page,
+            //         limit: action.payload.limit,
+            //         total: action.payload.total,
+            //         totalPages: action.payload.totalPages,
+            //     };
+            // })
             .addCase(fetchRecipes.fulfilled, (state, action) => {
                 state.status = 'succeeded';
                 state.recipes = action.payload.recipes;
                 state.pagination = {
-                    page: action.payload.page,
-                    limit: action.payload.limit,
-                    total: action.payload.total,
-                    totalPages: action.payload.totalPages,
+                    page: +action.payload.page,
+                    limit: +action.payload.limit,
+                    total: +action.payload.total,
+                    totalPages: +action.payload.totalPages,
                 };
+                // Проверяем, есть ли еще рецепты для загрузки
+                state.hasMore = action.payload.page < action.payload.totalPages;
             })
+
+            // ======================== loadMoreRecipes ========================
+            .addCase(loadMoreRecipes.pending, (state) => {
+                state.status = 'loading-more';
+            })
+            .addCase(loadMoreRecipes.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.recipes = [...state.recipes, ...action.payload.recipes];
+                state.pagination = {
+                    page: +action.payload.page,
+                    limit: +action.payload.limit,
+                    total: +action.payload.total,
+                    totalPages: +action.payload.totalPages,
+                };
+                // Проверяем, есть ли еще рецепты для загрузки
+                state.hasMore = action.payload.page < action.payload.totalPages;
+            })
+            .addCase(loadMoreRecipes.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload?.message || 'Failed to load more recipes';
+            })
+
+
             .addCase(fetchRecipes.rejected, (state, action) => {
                 state.status = 'failed';
                 state.error = action.payload?.message || 'Failed to fetch recipes';
@@ -310,7 +442,6 @@ const recipesSlice = createSlice({
 // Экспортируем actions и reducer
 export const { setFilters, resetFilters, setPage } = recipesSlice.actions;
 export default recipesSlice.reducer;
-//export const { resetRecipeState } = recipesSlice.actions;
 
 // ======================== Селекторы ========================
 export const selectAllRecipes = (state) => state.recipes.recipes;
@@ -321,3 +452,4 @@ export const selectPagination = (state) => state.recipes.pagination;
 export const selectFilters = (state) => state.recipes.filters;
 export const selectCategories = (state) => state.recipes.categories;
 export const selectCuisines = (state) => state.recipes.cuisines;
+export const selectHasMoreRecipes = (state) => state.recipes.hasMore;

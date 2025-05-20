@@ -23,7 +23,7 @@ const Header = ({ isLoginPage = false }) => {
         setIsModalOpen(false);
     };
 
-    console.log('HEADER', isAuthenticated, user)
+    //console.log('HEADER', isAuthenticated, user)
 
     const userName = isAuthenticated && user ? user.username || user.email : 'anonim';
     const userAvatar = isAuthenticated && user ? (

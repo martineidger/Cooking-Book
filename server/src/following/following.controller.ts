@@ -21,6 +21,11 @@ export class FollowingController {
     return this.followingService.checkStatus({ followerId: followerId, followingId: followingId });
   }
 
+  @Get('recipes/:id')
+  async findRecipes(@Param('id') id: string) {
+    return await this.followingService.findRecipes(id);
+  }
+
   @Get('followings/:userId')
   findFollowings(@Param('userId') id: string) {
     return this.followingService.findUserFollowings(id);

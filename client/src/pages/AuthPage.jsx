@@ -30,7 +30,7 @@ const AuthPage = () => {
 
     return (
         <>
-            <Header isLoginPage={true} />
+            {/* <Header isLoginPage={true} /> */}
             <div className="auth-page">
                 <div className="auth-container">
                     <div className="form-wrapper">

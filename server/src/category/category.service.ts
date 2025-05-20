@@ -8,6 +8,52 @@ import { CreateSubscriptionDto } from 'src/dto/subscription/create-subscription.
 export class CategoryService {
   constructor(private readonly prisma: DatabaseService) { }
 
+  async checkSub(userId: string, catId: string) {
+    const sub = await this.prisma.subscription.count({
+      where: {
+        categoryId: catId,
+        userId: userId
+      }
+    })
+
+    return sub !== 0;
+  }
+
+  async getDetail(id: string) {
+    const category = await this.prisma.category.findFirst({
+      where: { id: id },
+      // select: {
+      //   id: true,
+      //   description: true,
+      //   name: true,
+      //   recipes: true,
+      //   Subscription: true
+      // },
+      include: {
+        Subscription: true,
+        recipes: {
+          include: {
+            recipe: {
+              include: {
+                ingredients: {
+                  include: {
+                    ingredient: true,
+                    unit: true,
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
+    return {
+      ...category,
+      recipesCount: category?.recipes.length,
+      subscriptionsCount: category?.Subscription.length
+    }
+  }
   create(createCategoryDto: CreateBaseElement) {
     return this.prisma.category.create({
       data: createCategoryDto
@@ -40,6 +86,18 @@ export class CategoryService {
     })
   }
 
+  async deleteSubscription(subscribeDto: CreateSubscriptionDto) {
+    return await this.prisma.subscription.delete({
+      where: {
+        userId_categoryId: {
+          categoryId: subscribeDto.categoryId,
+          userId: subscribeDto.userId
+        }
+
+      }
+    })
+  }
+
   async getRecipesByUserSubscriptions(userId: string) {
     const categories = await this.prisma.subscription.findMany({
       where: {
@@ -56,6 +114,14 @@ export class CategoryService {
         categories: {
           some: { categoryId: { in: categoryIds } }
         }
+      },
+      include: {
+        ingredients: {
+          include: {
+            ingredient: true,
+            unit: true
+          }
+        }
       }
     })
   }
@@ -66,7 +132,16 @@ export class CategoryService {
         userId: userId
       },
       include: {
-        category: true
+        category: {
+          include: {
+            recipes: {
+              include: {
+                recipe: true
+              }
+            }
+          }
+        }
+
       }
     })
   }

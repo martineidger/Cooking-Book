@@ -64,12 +64,26 @@ export const getUserFollowers = createAsyncThunk(
     }
 );
 
+export const fetchFollowwingsRecipes = createAsyncThunk(
+    'follow/fetchFollowwingsRecipes',
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await http.get(`/follow/recipes/${userId}`);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data);
+        }
+    }
+);
+
 const initialState = {
     followings: [],
     followers: [],
+    followersCount: 0,
     status: 'idle',
     error: null,
-    isFollowing: false
+    isFollowing: false,
+    recipes: []
 };
 
 const followSlice = createSlice({
@@ -91,7 +105,7 @@ const followSlice = createSlice({
                 state.status = 'succeeded';
                 state.isFollowing = true;
                 // Обновляем список подписок
-                state.followings = [...state.followings, action.payload];
+                //state.followings = [...state.followings, action.payload];
             })
             .addCase(followUser.rejected, (state, action) => {
                 state.status = 'failed';
@@ -126,6 +140,7 @@ const followSlice = createSlice({
             })
             .addCase(getUserFollowings.fulfilled, (state, action) => {
                 state.status = 'succeeded';
+                console.log('foll slice', action)
                 state.followings = action.payload;
             })
             .addCase(getUserFollowings.rejected, (state, action) => {
@@ -140,8 +155,22 @@ const followSlice = createSlice({
             .addCase(getUserFollowers.fulfilled, (state, action) => {
                 state.status = 'succeeded';
                 state.followers = action.payload;
+                state.followersCount = state.followers.count;
             })
             .addCase(getUserFollowers.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            })
+
+            // Обработка getUserFollowers
+            .addCase(fetchFollowwingsRecipes.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(fetchFollowwingsRecipes.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.recipes = action.payload;
+            })
+            .addCase(fetchFollowwingsRecipes.rejected, (state, action) => {
                 state.status = 'failed';
                 state.error = action.payload;
             });

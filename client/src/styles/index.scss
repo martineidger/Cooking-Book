@@ -4,10 +4,12 @@
 @use 'mainPage.scss';
 @use 'usersPage.scss';
 @use 'recipePage.scss';
+@use 'categoryPage.scss';
 @use 'header.scss';
 @use 'recipeCard.scss';
-@use 'profile.scss';
+@use 'profilePage.scss';
 @use 'createRecipe.scss';
+@use 'ingredientsSearch.scss';
 
 * {
     margin: 0;

@@ -46,8 +46,9 @@ export const fetchSubscriptionsRecipes = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const userId = localStorage.getItem('userId')
-            await http.post(`/categories/sub/get-recipes?userId=${userId}`);
-            return categoryId;
+            const response = await http.get(`/categories/sub/get-recipes?userId=${userId}`);
+            console.log('sub recipes', response.data)
+            return response.data;
         } catch (err) {
             return rejectWithValue(err.response.data);
         }
@@ -60,7 +61,9 @@ const initialState = {
     status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
     error: null,
     operationStatus: 'idle', // Для операций follow/unfollow
-    operationError: null
+    operationError: null,
+    recipes: [],
+    selectedCategories: [],
 };
 
 const subscriptionsSlice = createSlice({
@@ -123,7 +126,7 @@ const subscriptionsSlice = createSlice({
             })
             .addCase(fetchSubscriptionsRecipes.fulfilled, (state, action) => {
                 state.operationStatus = 'succeeded';
-                state.recipesBySub = action.payload
+                state.recipes = action.payload
             })
             .addCase(fetchSubscriptionsRecipes.rejected, (state, action) => {
                 state.operationStatus = 'failed';
@@ -133,3 +136,5 @@ const subscriptionsSlice = createSlice({
 
     }
 });
+
+export default subscriptionsSlice.reducer;

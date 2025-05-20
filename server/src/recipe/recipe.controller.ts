@@ -13,7 +13,8 @@ import { Public } from 'src/auth/decorators/public.decorator';
 import { ServingsService } from './servings/servings.service';
 import { AdditionalService } from './additional/additional.service';
 import { PortionsResponseDto } from 'src/dto/recipe/portions-responce.dto';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FileFieldsInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { CloudinaryInterceptor } from 'src/common/interceptors/photo.interceptor';
 
 
 @Controller('recipes')
@@ -29,20 +30,19 @@ export class RecipeController {
     return await this.additionalService.addNote(createNoteDto);
   }
 
-  @UseInterceptors(FilesInterceptor('stepImages'))
+
   @Post()
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'mainPhoto', maxCount: 1 },
+      { name: 'steps', maxCount: 10 },
+    ]),
+    //AnyFilesInterceptor(),
+    CloudinaryInterceptor,
+  )
   async create(
-    @Body() createRecipeDto: CreateRecipeDto,
-    @UploadedFiles() stepImages: Array<Express.Multer.File>,
-    @UploadedFile() mainImage: Express.Multer.File) {
-    if (stepImages && stepImages.length > 0) {
-      createRecipeDto.steps?.forEach((step, index) => {
-        if (stepImages[index]) {
-          step.image = stepImages[index];
-        }
-      });
-      return await this.recipeService.create(createRecipeDto, mainImage);
-    }
+    @Body() body) {
+    return await this.recipeService.create(body);
   }
 
   @Get('with-ingredients')
@@ -153,8 +153,8 @@ export class RecipeController {
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Query('categoryId') categoryId?: string,
-    @Query('cuisineId') cuisineId?: string,
+    @Query('categoryIds') categoryIds?: string,
+    @Query('cuisineIds') cuisineIds?: string,
     @Query('ingredientIds') ingredientIds?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
@@ -170,8 +170,8 @@ export class RecipeController {
     return await this.recipeService.findAll(
       page,
       limit,
-      categoryId,
-      cuisineId,
+      categoryIds,
+      cuisineIds,
       ingredientIdsArray,
       sortBy,
       sortOrder,
@@ -179,6 +179,13 @@ export class RecipeController {
     );
   }
 
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'mainPhoto', maxCount: 1 },
+      { name: 'steps', maxCount: 10 },
+    ]),
+    CloudinaryInterceptor,
+  )
   @Put(':id')
   async update(@Param('id') id: string, @Body() updateRecipeDto: UpdateRecipeDto): Promise<Recipe> {
     return await this.recipeService.update(String(id), updateRecipeDto);
@@ -186,7 +193,7 @@ export class RecipeController {
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<Recipe> {
-    return await this.recipeService.remove(String(id));
+    return await this.recipeService.remove(id);
   }
 
   @Get(':id/notes')

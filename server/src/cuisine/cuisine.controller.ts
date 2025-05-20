@@ -17,10 +17,14 @@ export class CuisineController {
   findAll() {
     return this.cuisineService.findAll();
   }
+  @Get(':id/detail')
+  findDetail(@Param('id') id: string) {
+    return this.cuisineService.findDetail(id);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.cuisineService.findOne(+id);
+    return this.cuisineService.findOne(id);
   }
 
   // @Patch(':id')

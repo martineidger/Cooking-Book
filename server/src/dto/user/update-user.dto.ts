@@ -3,6 +3,7 @@ import { CreateUserDto } from './create-user.dto';
 
 //export class UpdateUserDto extends PartialType(CreateUserDto) {}
 import { IsString, IsNotEmpty, IsOptional, IsArray, IsInt } from 'class-validator';
+import { Multer } from 'multer';
 
 export class UpdateUserDto {
 
@@ -14,15 +15,18 @@ export class UpdateUserDto {
     @IsOptional()
     email?: string
 
-    @IsString()
-    @IsOptional()
-    password?: string
+    // @IsString()
+    // @IsOptional()
+    // password?: string
 
-    @IsArray()
-    @IsOptional()
-    recipes?: { recipyId: string }[]
+    // @IsArray()
+    // @IsOptional()
+    // recipes?: { recipyId: string }[]
 
-    @IsArray()
+    // @IsArray()
+    // @IsOptional()
+    // Subscription?: { subscriptionId: string }[]
+
     @IsOptional()
-    Subscription?: { subscriptionId: string }[]
+    avatarUrl?
 }
