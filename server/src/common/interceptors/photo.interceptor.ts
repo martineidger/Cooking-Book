@@ -140,6 +140,11 @@ export class CloudinaryInterceptor implements NestInterceptor {
         this.logger.debug(`Incoming files`);
         this.logger.debug(`Request body: ${JSON.stringify(req.body)}`);
 
+
+        // if (req.body.oldMainPhotoPublicId) {
+        //     await this.deleteImage(req.body.oldMainPhotoPublicId);
+        // }
+
         if (!req.files || Object.keys(req.files).length === 0) {
             this.logger.log('No files found in request');
             return next.handle();
@@ -157,44 +162,44 @@ export class CloudinaryInterceptor implements NestInterceptor {
 
         // Обработка mainPhoto
         if (req.files['mainPhoto']?.[0]) {
-            if (req.body.oldMainPhotoPublicId) {
-                await this.deleteImage(req.body.oldMainPhotoPublicId);
-            }
+            // if (req.body.oldMainPhotoPublicId) {
+            //     await this.deleteImage(req.body.oldMainPhotoPublicId);
+            // }
             req.body.mainPhoto = await this.processAndUploadImage(req.files['mainPhoto'][0]);
-            delete req.body.oldMainPhotoPublicId;
+            //delete req.body.oldMainPhotoPublicId;
         }
 
         // Обработка фото шагов
-        const stepFiles = Object.entries(files)
-            .filter(([key]) => key.startsWith('step_'));
+        // const stepFiles = Object.entries(files)
+        //     .filter(([key]) => key.startsWith('step_'));
 
-        for (const [key, fileArray] of stepFiles) {
-            const matchResult = key.match(/^step_(create|update)_(\d+)$/);
-            if (!matchResult) continue;
+        // for (const [key, fileArray] of stepFiles) {
+        //     const matchResult = key.match(/^step_(create|update)_(\d+)$/);
+        //     if (!matchResult) continue;
 
-            const action = matchResult[1];
-            const index = parseInt(matchResult[2]);
-            const file = fileArray[0];
+        //     const action = matchResult[1];
+        //     const index = parseInt(matchResult[2]);
+        //     const file = fileArray[0];
 
-            try {
-                if (action === 'create') {
-                    if (!req.body.stepsChanges?.create?.[index]) continue;
-                    req.body.stepsChanges.create[index].photo = await this.processAndUploadImage(file);
-                }
-                else if (action === 'update') {
-                    if (!req.body.stepsChanges?.update?.[index]) continue;
+        //     try {
+        //         if (action === 'create') {
+        //             if (!req.body.stepsChanges?.create?.[index]) continue;
+        //             req.body.stepsChanges.create[index].photo = await this.processAndUploadImage(file);
+        //         }
+        //         else if (action === 'update') {
+        //             if (!req.body.stepsChanges?.update?.[index]) continue;
 
-                    if (req.body.stepsChanges.update[index].oldPhotoPublicId) {
-                        await this.deleteImage(req.body.stepsChanges.update[index].oldPhotoPublicId);
-                    }
+        //             if (req.body.stepsChanges.update[index].oldPhotoPublicId) {
+        //                 await this.deleteImage(req.body.stepsChanges.update[index].oldPhotoPublicId);
+        //             }
 
-                    req.body.stepsChanges.update[index].photo = await this.processAndUploadImage(file);
-                    delete req.body.stepsChanges.update[index].oldPhotoPublicId;
-                }
-            } catch (error) {
-                this.logger.error(`Error processing step file ${key}:`, error);
-            }
-        }
+        //             req.body.stepsChanges.update[index].photo = await this.processAndUploadImage(file);
+        //             delete req.body.stepsChanges.update[index].oldPhotoPublicId;
+        //         }
+        //     } catch (error) {
+        //         this.logger.error(`Error processing step file ${key}:`, error);
+        //     }
+        // }
 
         return next.handle();
     }

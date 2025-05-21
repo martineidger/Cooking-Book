@@ -35,9 +35,7 @@ export class RecipeController {
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'mainPhoto', maxCount: 1 },
-      { name: 'steps', maxCount: 10 },
     ]),
-    //AnyFilesInterceptor(),
     CloudinaryInterceptor,
   )
   async create(
@@ -182,12 +180,12 @@ export class RecipeController {
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'mainPhoto', maxCount: 1 },
-      { name: 'steps', maxCount: 10 },
+
     ]),
     CloudinaryInterceptor,
   )
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateRecipeDto: UpdateRecipeDto): Promise<Recipe> {
+  async update(@Param('id') id: string, @Body() updateRecipeDto: UpdateRecipeDto): Promise<{ recipe: Recipe, allergens: Allergen[] }> {
     return await this.recipeService.update(String(id), updateRecipeDto);
   }
 

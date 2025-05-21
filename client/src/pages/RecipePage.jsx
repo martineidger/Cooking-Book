@@ -6,7 +6,6 @@ import { fetchRecipeById, selectCurrentRecipe, selectRecipesStatus, deleteRecipe
 import Modal from 'react-modal';
 import RecipeActions from '../components/RecipeActions';
 import { fetchUserCollections } from '../store/slices/collectionsSlice';
-import Header from '../components/Header';
 import { EditRecipeModal } from '../components/EditRecipeModal';
 
 Modal.setAppElement('#root');
@@ -57,6 +56,7 @@ const RecipePage = () => {
     const [editingRecipeId, setEditingRecipeId] = useState(null);
 
     const role = localStorage.getItem('userRole');
+    const currUserId = localStorage.getItem('userId')
     const isAdmin = role === 'Admin';
 
     const recipeData = useSelector(selectCurrentRecipe);
@@ -150,7 +150,7 @@ const RecipePage = () => {
                         &larr; Назад
                     </button>
 
-                    {isAdmin && (
+                    {(isAdmin || (currUserId === recipe.userId)) && (
                         <div className="admin-actions">
                             <button
                                 onClick={handleEditRecipe}
@@ -171,9 +171,16 @@ const RecipePage = () => {
                 <header className="recipe-header">
                     <h1>{recipe.title}</h1>
                     <p className="description">{recipe.description}</p>
-                    <p className="recipe-author" onClick={() => navigate(`/profile/${recipe.user.id}`)}>
-                        {recipe.user.username}
-                    </p>
+                    {recipe.user.role === 'Admin' ? (
+                        <p className="recipe-author" >
+                            Cooker
+                        </p>
+                    ) : (
+                        <p className="recipe-author" onClick={() => navigate(`/profile/${recipe.user.id}`)}>
+                            {recipe.user.username}
+                        </p>
+                    )}
+
 
                     {/* Основное изображение рецепта */}
                     {recipe.imageUrl && (
@@ -294,7 +301,7 @@ const RecipePage = () => {
                                         <div className="step-header">
                                             <h3>
                                                 Шаг {step.order}
-                                                {step.durationMin && (
+                                                {step.durationMin !== 0 && (
                                                     <span className="step-time">({step.durationMin} мин)</span>
                                                 )}
                                             </h3>

@@ -33,10 +33,9 @@ const modalStyle = {
     borderRadius: 2,
 };
 
-const CollectionsModal = ({ recipeId, onClose, onSelect, title }) => {
+const CollectionsModal = ({ recipeId, onClose, onSave, onSelect, title, currCollectionId }) => {
 
     const titleModal = title || "Добавить в коллекции";
-
 
     const dispatch = useDispatch();
     const allCollections = useSelector(state => state.collections.collections);
@@ -55,19 +54,30 @@ const CollectionsModal = ({ recipeId, onClose, onSelect, title }) => {
 
                 const result = await dispatch(fetchCollectionByRecipeId(recipeId));
                 setCollectionsWithRecipe(result.payload.map(c => c.id));
-                setSelectedCollections(result.payload.map(c => c.id));
+                setSelectedCollections(result.payload.map(c => c.id), currCollectionId);
+
             } finally {
                 setLoading(false);
             }
         };
 
-        loadData();
+        if (currCollectionId) {
+            setCollectionsWithRecipe([currCollectionId]);
+            setSelectedCollections([currCollectionId]);
+            setLoading(false);
+        }
+        else {
+            loadData();
+        }
+
+
+
     }, [recipeId, dispatch]);
 
     const handleToggleCollection = (collectionId) => {
-        if (onSelect) {
-            onSelect(collectionId);
-        }
+        // if (onSelect) {
+        //     onSelect(collectionId);
+        // }
 
         setSelectedCollections(prev => {
             const currentIndex = prev.indexOf(collectionId);
@@ -85,6 +95,10 @@ const CollectionsModal = ({ recipeId, onClose, onSelect, title }) => {
 
 
     const handleAddToCollections = async () => {
+        if (onSave) {
+            onSave(selectedCollections)
+            return
+        }
         const removedFrom = collectionsWithRecipe.filter(
             id => !selectedCollections.includes(id)
         );
@@ -325,7 +339,10 @@ const CollectionsModal = ({ recipeId, onClose, onSelect, title }) => {
                     >
                         Сохранить изменения
                     </Button>
+
                 </Box>
+                {currCollectionId && (<span>* некоторые из выбранных рецептов уже могут находится в целевых коллекциях</span>)}
+
             </Box>
         </Modal>
     );

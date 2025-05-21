@@ -5,9 +5,24 @@ import { recipeApi } from '../../api/recipeApi';
 const initialState = {
     collections: [],
     favorites: [],
+    currentCollection: null,
+    recipesOnCollection: [],
     status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
     error: null,
 };
+
+export const fetchCollectionById = createAsyncThunk(
+    'collections/fetchCollectionById',
+    async (collectionId, { rejectWithValue }) => {
+        try {
+            const responce = await collectionsApi.getCollectionById(collectionId);
+            console.log(9877, responce)
+            return responce
+        } catch (err) {
+            return rejectWithValue(err.response?.data || err.message);
+        }
+    }
+);
 
 // Асинхронные операции
 export const fetchUserCollections = createAsyncThunk(
@@ -127,7 +142,9 @@ export const moveRecipes = createAsyncThunk(
     'collections/moveRecipes',
     async (moveRecipesDto, { rejectWithValue }) => {
         try {
-            return await collectionsApi.moveRecipesBetweenCollections(moveRecipesDto);
+            const responce = await collectionsApi.moveRecipesBetweenCollections(moveRecipesDto);
+            console.log(9988, responce)
+            return { ...responce, ...moveRecipesDto }
         } catch (err) {
             return rejectWithValue(err.response?.data || err.message);
         }
@@ -139,7 +156,8 @@ export const copyRecipes = createAsyncThunk(
     async (copyRecipesDto, { rejectWithValue }) => {
         try {
             console.log("COPY SLICE", copyRecipesDto)
-            return await collectionsApi.copyRecipesBetweenCollections(copyRecipesDto);
+            const responce = await collectionsApi.copyRecipesBetweenCollections(copyRecipesDto);
+            return { ...responce, ...copyRecipesDto }
         } catch (err) {
             return rejectWithValue(err.response?.data || err.message);
         }
@@ -281,17 +299,7 @@ const collectionsSlice = createSlice({
             .addCase(addRecipeToCollections.fulfilled, (state, action) => {
                 state.status = 'succeeded';
                 const { recipeId, collectionIds } = action.meta.arg;
-                // console.log(collectionIds)
-                // collectionIds.forEach(collectionId => {
-                //     const collection = state.collections.find(c => c.id === collectionId);
-                //     console.log("SL COLLECTION", state.collections)
-                //     if (collection && !collection.recipes.some(r => r.recipeId === recipeId)) {
-                //         collection.recipes.push(recipeId);
-                //     }
-                // });
-                // if (action.meta.arg.addToFavorites && !state.favorites.includes(recipeId)) {
-                //     state.favorites.push(recipeId);
-                // }
+
             })
             .addCase(removeRecipeFromUserCollection.fulfilled, (state, action) => {
                 state.status = 'succeeded';
@@ -302,23 +310,25 @@ const collectionsSlice = createSlice({
                 }
             })
             .addCase(moveRecipes.fulfilled, (state, action) => {
-                state.status = 'succeeded';
-                const { sourceId, targetId, recipeIds } = action.meta.arg;
-                const source = state.collections.find(c => c.id === sourceId);
-                const target = state.collections.find(c => c.id === targetId);
+                console.log(55666, action.payload)
+                console.log(11223, state.recipesOnCollection)
+                state.recipesOnCollection.filter(recipe => !recipeIds.includes(recipe.recipeId));
+                const target = state.collections.find(c => c.id === targetCollectionId);
 
-                if (source && target) {
-                    source.recipes = source.recipes.filter(id => !recipeIds.includes(id));
-                    recipeIds.forEach(id => {
-                        if (!target.recipes.includes(id)) {
-                            target.recipes.push(id);
-                        }
-                    });
-                }
+                state.status = 'succeeded';
+                // if (source && target) {
+                //     source.recipes = source.recipes.filter(id => !recipeIds.includes(id));
+                //     recipeIds.forEach(id => {
+                //         if (!target.recipes.includes(id)) {
+                //             target.recipes.push(id);
+                //         }
+                //     });
+                // }
             })
+
             .addCase(copyRecipes.fulfilled, (state, action) => {
                 state.status = 'succeeded';
-                const { targetId, recipeIds } = action.meta.arg;
+                const { targetId, recipeIds } = action.payload;
                 const target = state.collections.find(c => c.id === targetId);
 
                 if (target) {
@@ -348,6 +358,12 @@ const collectionsSlice = createSlice({
                 state.status = 'succeeded';
                 // Возвращаем коллекции, где есть этот рецепт
                 state.collectionsWithRecipe = action.payload;
+            })
+            .addCase(fetchCollectionById.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                // Возвращаем коллекции, где есть этот рецепт
+                state.currentCollection = action.payload;
+                state.recipesOnCollection = action.payload.RecipeOnCollection
             })
 
             // Затем общие обработчики .addMatcher

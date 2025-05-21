@@ -1,119 +1,446 @@
-// src/styles/profile.scss
+// // src/styles/profile.scss
+// .profile-page {
+//     max-width: 1200px;
+//     margin: 0 auto;
+//     padding: 20px;
+
+//     .profile-header {
+//         display: flex;
+//         gap: 30px;
+//         margin-bottom: 40px;
+//         align-items: center;
+
+//         .profile-avatar {
+//             width: 150px;
+//             height: 150px;
+//             border-radius: 50%;
+//             background-color: #f0f0f0;
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+//             font-size: 60px;
+//             font-weight: bold;
+//             color: #555;
+//         }
+
+//         .profile-info {
+//             flex: 1;
+
+//             h1 {
+//                 margin: 0 0 10px;
+//                 font-size: 28px;
+//             }
+
+//             .profile-bio {
+//                 margin: 0 0 20px;
+//                 color: #666;
+//                 font-size: 16px;
+//             }
+
+//             .profile-stats {
+//                 display: flex;
+//                 gap: 30px;
+//                 margin-bottom: 20px;
+
+//                 .stat-item {
+//                     display: flex;
+//                     flex-direction: column;
+//                     align-items: center;
+
+//                     .stat-number {
+//                         font-size: 20px;
+//                         font-weight: bold;
+//                     }
+
+//                     .stat-label {
+//                         font-size: 14px;
+//                         color: #777;
+//                     }
+//                 }
+//             }
+
+//             .edit-profile-button {
+//                 display: inline-block;
+//                 padding: 8px 16px;
+//                 background-color: #4CAF50;
+//                 color: white;
+//                 border-radius: 4px;
+//                 text-decoration: none;
+//                 font-size: 14px;
+//                 transition: background-color 0.3s;
+
+//                 &:hover {
+//                     background-color: #45a049;
+//                 }
+//             }
+//         }
+//     }
+
+//     .profile-section {
+//         margin-bottom: 40px;
+
+//         h2 {
+//             margin-bottom: 20px;
+//             font-size: 22px;
+//             color: #333;
+//         }
+
+//         .empty-message {
+//             color: #777;
+//             font-style: italic;
+//         }
+//     }
+
+//     .subscriptions-grid {
+//         display: grid;
+//         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+//         gap: 20px;
+//     }
+
+//     .profile-tabs {
+//         display: flex;
+//         border-bottom: 1px solid #ddd;
+//         margin-bottom: 20px;
+
+//         .tab-button {
+//             padding: 10px 20px;
+//             background: none;
+//             border: none;
+//             cursor: pointer;
+//             font-size: 16px;
+//             color: #666;
+//             position: relative;
+
+//             &.active {
+//                 color: #333;
+//                 font-weight: bold;
+
+//                 &::after {
+//                     content: '';
+//                     position: absolute;
+//                     bottom: -1px;
+//                     left: 0;
+//                     right: 0;
+//                     height: 2px;
+//                     background-color: #4CAF50;
+//                 }
+//             }
+//         }
+//     }
+
+//     .collections-grid {
+//         display: grid;
+//         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+//         gap: 20px;
+//     }
+
+//     .recipes-list {
+//         display: flex;
+//         flex-direction: column;
+//         gap: 20px;
+//     }
+
+//     .loader,
+//     .end-message {
+//         text-align: center;
+//         padding: 20px;
+//         color: #777;
+//     }
+// }
+
+// .modal-container {
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//     height: 100vh;
+// }
+
+// .modal-content {
+//     background-color: white;
+//     padding: 20px;
+//     border-radius: 8px;
+//     width: 100%;
+//     max-width: 500px;
+//     max-height: 90vh;
+//     overflow-y: auto;
+// }
+
+// .modal-header {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     margin-bottom: 20px;
+// }
+
+// .avatar-upload {
+//     display: flex;
+//     flex-direction: column;
+//     align-items: center;
+//     gap: 10px;
+//     margin-bottom: 20px;
+// }
+
+// .modal-actions {
+//     display: flex;
+//     justify-content: flex-end;
+//     gap: 10px;
+//     margin-top: 20px;
+// }
+
+// .modal-overlay {
+//     position: fixed;
+//     top: 0;
+//     left: 0;
+//     right: 0;
+//     bottom: 0;
+//     background-color: rgba(0, 0, 0, 0.5);
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//     z-index: 1000;
+//     opacity: 0;
+//     transition: opacity 0.3s ease;
+
+//     &.ReactModal__Overlay--after-open {
+//         opacity: 1;
+//     }
+
+//     &.ReactModal__Overlay--before-close {
+//         opacity: 0;
+//     }
+// }
+
+// .modal {
+//     background: white;
+//     border-radius: 8px;
+//     padding: 25px;
+//     max-width: 500px;
+//     width: 90%;
+//     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+//     position: relative;
+//     transform: translateY(-20px);
+//     transition: transform 0.3s ease;
+
+//     .ReactModal__Content--after-open & {
+//         transform: translateY(0);
+//     }
+
+//     .ReactModal__Content--before-close & {
+//         transform: translateY(-20px);
+//     }
+
+//     h2 {
+//         margin-top: 0;
+//         color: #333;
+//         font-size: 1.5rem;
+//     }
+
+//     p {
+//         margin-bottom: 1.5rem;
+//         color: #666;
+//     }
+// }
+
+// .modal-buttons {
+//     display: flex;
+//     justify-content: flex-end;
+//     gap: 10px;
+//     margin-top: 20px;
+
+//     button {
+//         padding: 8px 16px;
+//         border-radius: 4px;
+//         font-weight: 500;
+//         cursor: pointer;
+//         transition: all 0.2s ease;
+
+//         &.button-primary {
+//             background-color: #4CAF50;
+//             color: white;
+//             border: none;
+
+//             &:hover {
+//                 background-color: #3e8e41; // Темнее на 15%
+//             }
+//         }
+
+//         &.button-secondary {
+//             background-color: #f0f0f0;
+//             color: #333;
+//             border: 1px solid #ddd;
+
+//             &:hover {
+//                 background-color: #e0e0e0; // Темнее на 10%
+//             }
+//         }
+
+//         &.button-danger {
+//             background-color: #f44336;
+//             color: white;
+//             border: none;
+
+//             &:hover {
+//                 background-color: #d32f2f; // Темнее на 10%
+//             }
+//         }
+//     }
+// }
+@use 'sass:color';
+// Основные цвета
+$primary-color: #ff6b6b;
+$primary-dark: #ff4757;
+$primary-light: #ff8787;
+$text-dark: #2f3542;
+$text-medium: #57606f;
+$text-light: #747d8c;
+$white: #ffffff;
+$gray-light: #f1f2f6;
+$gray-medium: #dfe4ea;
+$gray-dark: #a4b0be;
+$primary-pale: #ffb8b8;
+
 .profile-page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 24px;
 
     .profile-header {
         display: flex;
-        gap: 30px;
-        margin-bottom: 40px;
-        align-items: center;
+        gap: 32px;
+        margin-bottom: 48px;
+        align-items: flex-start;
 
         .profile-avatar {
-            width: 150px;
-            height: 150px;
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
-            background-color: #f0f0f0;
+            background-color: $gray-light;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 60px;
+            font-size: 64px;
             font-weight: bold;
-            color: #555;
+            color: $text-medium;
+            flex-shrink: 0;
+            overflow: hidden;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
         }
 
         .profile-info {
             flex: 1;
 
             h1 {
-                margin: 0 0 10px;
-                font-size: 28px;
+                margin: 0 0 12px;
+                font-size: 2rem;
+                color: $text-dark;
+                font-weight: 700;
             }
 
             .profile-bio {
-                margin: 0 0 20px;
-                color: #666;
-                font-size: 16px;
+                margin: 0 0 24px;
+                color: $text-medium;
+                font-size: 1rem;
+                line-height: 1.6;
+                max-width: 600px;
             }
 
             .profile-stats {
                 display: flex;
-                gap: 30px;
-                margin-bottom: 20px;
+                gap: 32px;
+                margin-bottom: 24px;
 
                 .stat-item {
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
+                    align-items: flex-start;
+                    cursor: pointer;
+                    transition: color 0.2s ease;
+
+                    &:hover {
+                        color: $primary-color;
+                    }
 
                     .stat-number {
-                        font-size: 20px;
-                        font-weight: bold;
+                        font-size: 1.25rem;
+                        font-weight: 600;
+                        color: $text-dark;
                     }
 
                     .stat-label {
-                        font-size: 14px;
-                        color: #777;
+                        font-size: 0.875rem;
+                        color: $text-light;
                     }
                 }
             }
 
-            .edit-profile-button {
-                display: inline-block;
-                padding: 8px 16px;
-                background-color: #4CAF50;
-                color: white;
-                border-radius: 4px;
-                text-decoration: none;
-                font-size: 14px;
-                transition: background-color 0.3s;
+            .profile-actions {
+                display: flex;
+                gap: 16px;
 
-                &:hover {
-                    background-color: #45a049;
+                .MuiButton-contained {
+                    text-transform: none;
+                    font-weight: 500;
+                    border-radius: 8px;
+                    padding: 8px 20px;
                 }
             }
         }
     }
 
     .profile-section {
-        margin-bottom: 40px;
+        margin-bottom: 48px;
 
         h2 {
-            margin-bottom: 20px;
-            font-size: 22px;
-            color: #333;
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+            color: $text-dark;
+            font-weight: 600;
+            padding-bottom: 8px;
+            border-bottom: 2px solid $primary-pale;
         }
 
         .empty-message {
-            color: #777;
+            color: $text-light;
             font-style: italic;
+            padding: 16px;
+            text-align: center;
         }
     }
 
     .subscriptions-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 24px;
     }
 
     .profile-tabs {
         display: flex;
-        border-bottom: 1px solid #ddd;
-        margin-bottom: 20px;
+        border-bottom: 1px solid $gray-medium;
+        margin-bottom: 32px;
 
         .tab-button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 16px;
-            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+            color: $text-medium;
             position: relative;
+            transition: all 0.3s ease;
+
+            &:hover {
+                color: $primary-color;
+            }
 
             &.active {
-                color: #333;
-                font-weight: bold;
+                color: $primary-dark;
+                font-weight: 600;
 
                 &::after {
                     content: '';
@@ -121,8 +448,8 @@
                     bottom: -1px;
                     left: 0;
                     right: 0;
-                    height: 2px;
-                    background-color: #4CAF50;
+                    height: 3px;
+                    background-color: $primary-color;
                 }
             }
         }
@@ -131,20 +458,134 @@
     .collections-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
+        gap: 24px;
     }
 
     .recipes-list {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
     }
 
     .loader,
     .end-message {
         text-align: center;
-        padding: 20px;
-        color: #777;
+        padding: 24px;
+        color: $text-light;
+    }
+}
+
+// Модальные окна
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: $white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+
+    h2 {
+        margin-top: 0;
+        color: $text-dark;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    p {
+        margin-bottom: 1.5rem;
+        color: $text-medium;
+        line-height: 1.6;
+    }
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+
+    button {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        border: none;
+
+        &.button-danger {
+            background-color: $primary-dark;
+            color: $white;
+
+            &:hover {
+                background-color: color.adjust($primary-dark, $lightness: -5%);
+            }
+        }
+
+        &.button-secondary {
+            background-color: $gray-light;
+            color: $text-dark;
+
+            &:hover {
+                background-color: $gray-medium;
+            }
+        }
+    }
+}
+
+// Адаптация для мобильных
+@media (max-width: 768px) {
+    .profile-page {
+        padding: 16px;
+
+        .profile-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 48px;
+            }
+
+            .profile-info {
+                text-align: center;
+
+                .profile-stats {
+                    justify-content: center;
+                }
+
+                .profile-actions {
+                    flex-direction: column;
+                    align-items: center;
+                }
+            }
+        }
+
+        .profile-tabs {
+            justify-content: center;
+        }
+
+        .collections-grid,
+        .recipes-list,
+        .subscriptions-grid {
+            grid-template-columns: 1fr;
+        }
     }
 }
 

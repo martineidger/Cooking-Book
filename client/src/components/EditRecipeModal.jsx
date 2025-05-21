@@ -15,7 +15,11 @@ import {
     FormControl,
     Chip,
     Divider,
-    IconButton
+    IconButton,
+    CircularProgress,
+    Autocomplete,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -51,9 +55,11 @@ const modalStyle = {
 };
 
 export const EditRecipeModal = ({ open, onClose, recipe }) => {
+
     const dispatch = useDispatch();
     const { ingredients, units } = useSelector(state => state.ingredients);
     const { categories, cuisines } = useSelector(state => state.recipes);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const initialFormData = useRef(null);
     const [formData, setFormData] = useState({
@@ -67,6 +73,16 @@ export const EditRecipeModal = ({ open, onClose, recipe }) => {
         image: null,
         oldMainPhotoPublicId: null
     });
+    const [error, setError] = useState(null);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSnackbar(false);
+        setError(null);
+    };
 
     const [imagePreview, setImagePreview] = useState(null);
     const [currentStep, setCurrentStep] = useState({
@@ -87,32 +103,66 @@ export const EditRecipeModal = ({ open, onClose, recipe }) => {
     });
 
     const [initialLoad, setInitialLoad] = useState(false);
+    const [ingredientInputValue, setIngredientInputValue] = useState('');
+
+    // useEffect(() => {
+    //     if (open && !initialLoad) {
+    //         const loadData = async () => {
+    //             if (!ingredients || ingredients.length === 0) {
+    //                 await dispatch(fetchIngredients());
+    //             }
+    //             if (!units || units.length === 0)
+    //                 await dispatch(fetchIngredientUnits());
+    //             if (!categories || categories.length === 0)
+    //                 await dispatch(fetchCategories());
+    //             if (!cuisines || categories.length === 0)
+    //                 await dispatch(fetchCuisines());
+
+
+    //             setInitialLoad(true);
+    //         };
+    //         loadData();
+    //     }
+
+    //     return () => {
+    //         if (!open) {
+    //             setInitialLoad(false);
+    //         }
+    //     };
+    // }, [open, initialLoad]);
 
     useEffect(() => {
-        if (open && !initialLoad) {
+        if (open) {
             const loadData = async () => {
-                if (!ingredients || ingredients.length === 0) {
-                    await dispatch(fetchIngredients());
+                try {
+                    const promises = [];
+
+                    if (!ingredients || ingredients.length === 0) {
+                        promises.push(dispatch(fetchIngredients()));
+                    }
+                    if (!units || units.length === 0) {
+                        promises.push(dispatch(fetchIngredientUnits()));
+                    }
+                    if (!categories || categories.length === 0) {
+                        promises.push(dispatch(fetchCategories()));
+                    }
+                    if (!cuisines || cuisines.length === 0) {
+                        promises.push(dispatch(fetchCuisines()));
+                    }
+
+                    await Promise.all(promises);
+                    setInitialLoad(true);
+                } catch (error) {
+                    console.error('Ошибка при загрузке данных:', error);
+                    setError(error.message || 'Произошла ошибка при загрузке данных');
+                    setOpenSnackbar(true);
+                    setIsSubmitting(false);
                 }
-                if (!units || units.length === 0)
-                    await dispatch(fetchIngredientUnits());
-                if (!categories || categories.length === 0)
-                    await dispatch(fetchCategories());
-                if (!cuisines || categories.length === 0)
-                    await dispatch(fetchCuisines());
-
-
-                setInitialLoad(true);
             };
+
             loadData();
         }
-
-        return () => {
-            if (!open) {
-                setInitialLoad(false);
-            }
-        };
-    }, [open, initialLoad]);
+    }, [open]); // Убрали зависимость от initialLoad
 
     useEffect(() => {
         if (recipe && open) {
@@ -662,6 +712,7 @@ export const EditRecipeModal = ({ open, onClose, recipe }) => {
 
             // ❌ Ничего не изменилось
             if (!hasChanges) {
+                setIsSubmitting(false);
                 onClose();
                 return;
             }
@@ -669,9 +720,13 @@ export const EditRecipeModal = ({ open, onClose, recipe }) => {
             console.log(777, formDataToSend)
             // 🔄 Отправка
             await dispatch(updateRecipe({ id: recipe.id, recipeData: formDataToSend })).unwrap();
+            setIsSubmitting(true);
             onClose();
         } catch (error) {
             console.error('Ошибка при сохранении рецепта:', error);
+            setError(error.message || 'Произошла ошибка при сохранении рецепта');
+            setOpenSnackbar(true);
+            setIsSubmitting(false);
         }
     };
 
@@ -692,6 +747,15 @@ export const EditRecipeModal = ({ open, onClose, recipe }) => {
     };
 
     const handleAddIngredient = () => {
+        const ingredientExists = formData.ingredients.some(
+            ing => ing.ingredientId === currentIngredient.ingredientId
+        );
+
+        if (ingredientExists) {
+            setError('Такой ингредиент уже добавлен');
+            setOpenSnackbar(true);
+            return;
+        }
         if (!currentIngredient.ingredientId || !currentIngredient.ingredientUnitId) return;
 
         setFormData(prev => ({
@@ -711,6 +775,7 @@ export const EditRecipeModal = ({ open, onClose, recipe }) => {
             quantity: 1,
             ingredientUnitId: ''
         });
+        setIngredientInputValue('');
     };
 
     const handleRemoveIngredient = (index) => {
@@ -844,118 +909,134 @@ export const EditRecipeModal = ({ open, onClose, recipe }) => {
     };
 
     return (
-        <Modal open={open} onClose={onClose}>
-            <Box sx={modalStyle}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5">Редактировать рецепт</Typography>
-                    <IconButton onClick={onClose}>
-                        <CloseIcon />
-                    </IconButton>
-                </Box>
+        <>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    severity="error"
+                    onClose={handleCloseSnackbar}
+                    sx={{ width: '100%' }}
+                >
+                    {error || 'Произошла ошибка'}
+                </Alert>
+            </Snackbar>
 
-                <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>Фото рецепта</Typography>
-                    {console.log(imagePreview)}
-                    {imagePreview ? (
-                        <Box sx={{ position: 'relative', width: '100%', maxWidth: 400 }}>
-                            <img
-                                src={imagePreview}
-                                alt="Preview"
-                                style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 1 }}
-                            />
-                            <IconButton
-                                onClick={handleRemoveImage}
-                                sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper' }}
+            <Modal open={open} onClose={onClose}>
+                <Box sx={modalStyle}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                        <Typography variant="h5">Редактировать рецепт</Typography>
+                        <IconButton onClick={onClose}>
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
+
+                    <Box sx={{ mb: 3 }}>
+                        <Typography variant="h6" sx={{ mb: 2 }}>Фото рецепта</Typography>
+                        {console.log(imagePreview)}
+                        {imagePreview ? (
+                            <Box sx={{ position: 'relative', width: '100%', maxWidth: 400 }}>
+                                <img
+                                    src={imagePreview}
+                                    alt="Preview"
+                                    style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 1 }}
+                                />
+                                <IconButton
+                                    onClick={handleRemoveImage}
+                                    sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper' }}
+                                >
+                                    <CloseIcon />
+                                </IconButton>
+                            </Box>
+                        ) : (
+                            <Button
+                                component="label"
+                                variant="outlined"
+                                startIcon={<CloudUploadIcon />}
+                                fullWidth
+                                sx={{ py: 2 }}
                             >
-                                <CloseIcon />
-                            </IconButton>
-                        </Box>
-                    ) : (
-                        <Button
-                            component="label"
-                            variant="outlined"
-                            startIcon={<CloudUploadIcon />}
-                            fullWidth
-                            sx={{ py: 2 }}
+                                Загрузить фото
+                                <VisuallyHiddenInput
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                />
+                            </Button>
+                        )}
+                        <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                            Рекомендуемый размер: 1200x800px, форматы: JPG, PNG
+                        </Typography>
+                    </Box>
+
+                    <TextField
+                        fullWidth
+                        label="Название рецепта"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        sx={{ mb: 3 }}
+                        required
+                    />
+
+                    <TextField
+                        fullWidth
+                        label="Описание"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        multiline
+                        rows={3}
+                        sx={{ mb: 3 }}
+                    />
+
+                    <TextField
+                        fullWidth
+                        label="Количество порций"
+                        name="portions"
+                        type="number"
+                        value={formData.portions}
+                        onChange={handleInputChange}
+                        sx={{ mb: 3, width: 150 }}
+                        InputProps={{ inputProps: { min: 1 } }}
+                        required
+                    />
+
+                    <FormControl fullWidth sx={{ mb: 3 }}>
+                        <InputLabel>Кухня</InputLabel>
+                        <Select
+                            value={formData.cuisineId}
+                            onChange={(e) => setFormData(prev => ({ ...prev, cuisineId: e.target.value }))}
+                            label="Кухня"
                         >
-                            Загрузить фото
-                            <VisuallyHiddenInput
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageUpload}
+                            {cuisines.map(cuisine => (
+                                <MenuItem key={cuisine.id} value={cuisine.id}>
+                                    {cuisine.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <Typography variant="h6" sx={{ mb: 2 }}>Категории</Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+                        {console.log(222, categories)}
+                        {categories.map(category => (
+                            <Chip
+                                key={category.id}
+                                label={category.name}
+                                clickable
+                                color={formData.categories.some(c => c.categoryId === category.id) ? 'primary' : 'default'}
+                                onClick={() => handleCategoryToggle(category.id)}
                             />
-                        </Button>
-                    )}
-                    <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                        Рекомендуемый размер: 1200x800px, форматы: JPG, PNG
-                    </Typography>
-                </Box>
-
-                <TextField
-                    fullWidth
-                    label="Название рецепта"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    sx={{ mb: 3 }}
-                    required
-                />
-
-                <TextField
-                    fullWidth
-                    label="Описание"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    multiline
-                    rows={3}
-                    sx={{ mb: 3 }}
-                />
-
-                <TextField
-                    fullWidth
-                    label="Количество порций"
-                    name="portions"
-                    type="number"
-                    value={formData.portions}
-                    onChange={handleInputChange}
-                    sx={{ mb: 3, width: 150 }}
-                    InputProps={{ inputProps: { min: 1 } }}
-                    required
-                />
-
-                <FormControl fullWidth sx={{ mb: 3 }}>
-                    <InputLabel>Кухня</InputLabel>
-                    <Select
-                        value={formData.cuisineId}
-                        onChange={(e) => setFormData(prev => ({ ...prev, cuisineId: e.target.value }))}
-                        label="Кухня"
-                    >
-                        {cuisines.map(cuisine => (
-                            <MenuItem key={cuisine.id} value={cuisine.id}>
-                                {cuisine.name}
-                            </MenuItem>
                         ))}
-                    </Select>
-                </FormControl>
+                    </Box>
 
-                <Typography variant="h6" sx={{ mb: 2 }}>Категории</Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-                    {console.log(222, categories)}
-                    {categories.map(category => (
-                        <Chip
-                            key={category.id}
-                            label={category.name}
-                            clickable
-                            color={formData.categories.some(c => c.categoryId === category.id) ? 'primary' : 'default'}
-                            onClick={() => handleCategoryToggle(category.id)}
-                        />
-                    ))}
-                </Box>
+                    <Divider sx={{ my: 3 }} />
 
-                <Divider sx={{ my: 3 }} />
-
-                <Typography variant="h6" sx={{ mb: 2 }}>Ингредиенты</Typography>
+                    {/* <Typography variant="h6" sx={{ mb: 2 }}>Ингредиенты</Typography>
                 <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                     <FormControl sx={{ flex: 2 }}>
                         <InputLabel>Ингредиент</InputLabel>
@@ -1004,147 +1085,216 @@ export const EditRecipeModal = ({ open, onClose, recipe }) => {
                     >
                         Добавить
                     </Button>
-                </Box>
-
-                <Box sx={{ mb: 3 }}>
-                    {console.log(111, formData)}
-                    {formData.ingredients.map((ingredient, index) => {
-                        const ingr = ingredients.find(i => i.id == ingredient.ingredientId);
-                        const unit = units.find(u => u.id === ingredient.ingredientUnitId);
-
-                        return (
-                            <Box key={index} sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 2,
-                                p: 1,
-                                borderBottom: '1px solid #eee'
-                            }}>
-                                <Typography sx={{ flex: 2 }}>
-
-                                    {ingr?.name || 'Неизвестный ингредиент'}
-                                </Typography>
-                                <Typography sx={{ flex: 1 }}>
-                                    {ingredient.quantity}
-                                </Typography>
-                                <Typography sx={{ flex: 2 }}>
-                                    {unit?.shortName || 'Неизвестная единица'}
-                                </Typography>
-                                <IconButton onClick={() => handleRemoveIngredient(index)}>
-                                    <RemoveIcon color="error" />
-                                </IconButton>
-                            </Box>
-                        );
-                    })}
-                </Box>
-
-                <Divider sx={{ my: 3 }} />
-
-                <Typography variant="h6" sx={{ mb: 2 }}>Шаги приготовления</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
-                    <TextField
-                        fullWidth
-                        label="Название шага"
-                        value={currentStep.title}
-                        onChange={(e) => setCurrentStep(prev => ({ ...prev, title: e.target.value }))}
-                    />
-                    <TextField
-                        fullWidth
-                        label="Описание шага"
-                        value={currentStep.description}
-                        onChange={(e) => setCurrentStep(prev => ({ ...prev, description: e.target.value }))}
-                        multiline
-                        rows={3}
-                    />
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <TextField
-                            label="Время (мин)"
-                            type="number"
-                            value={currentStep.durationMin}
-                            onChange={(e) => setCurrentStep(prev => ({
-                                ...prev,
-                                durationMin: parseInt(e.target.value) || 0
-                            }))}
-                            sx={{ width: 150 }}
-                            InputProps={{ inputProps: { min: 0 } }}
+                </Box> */}
+                    <Typography variant="h6" sx={{ mb: 2 }}>Ингредиенты</Typography>
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                        <Autocomplete
+                            sx={{ flex: 2 }}
+                            options={ingredients}
+                            getOptionLabel={(option) => option.name}
+                            value={ingredients.find(ing => ing.id === currentIngredient.ingredientId) || null}
+                            onChange={(event, newValue) => {
+                                setCurrentIngredient(prev => ({
+                                    ...prev,
+                                    ingredientId: newValue?.id || ''
+                                }));
+                            }}
+                            inputValue={ingredientInputValue}
+                            onInputChange={(event, newInputValue) => {
+                                setIngredientInputValue(newInputValue);
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Ингредиент"
+                                    placeholder="Начните вводить название"
+                                />
+                            )}
+                            noOptionsText="Ничего не найдено"
+                            filterOptions={(options, state) => {
+                                const input = state.inputValue.toLowerCase();
+                                return options.filter(option =>
+                                    option.name.toLowerCase().includes(input)
+                                );
+                            }}
                         />
+
+                        <TextField
+                            sx={{ flex: 1 }}
+                            label="Количество"
+                            type="number"
+                            value={currentIngredient.quantity}
+                            onChange={(e) => setCurrentIngredient(prev => ({ ...prev, quantity: parseFloat(e.target.value) }))}
+                            InputProps={{ inputProps: { min: 0.1, step: 0.1 } }}
+                        />
+
+                        <FormControl sx={{ flex: 2 }}>
+                            <InputLabel>Единица измерения</InputLabel>
+                            <Select
+                                value={currentIngredient.ingredientUnitId}
+                                onChange={(e) => setCurrentIngredient(prev => ({ ...prev, ingredientUnitId: e.target.value }))}
+                                label="Единица измерения"
+                            >
+                                {units.map(unit => (
+                                    <MenuItem key={unit.id} value={unit.id}>
+                                        {unit.name} ({unit.shortName})
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
                         <Button
                             variant="contained"
-                            onClick={handleAddStep}
-                            disabled={!currentStep.title}
+                            onClick={handleAddIngredient}
+                            disabled={!currentIngredient.ingredientId || !currentIngredient.ingredientUnitId}
                             startIcon={<AddIcon />}
                         >
-                            Добавить шаг
+                            Добавить
                         </Button>
                     </Box>
-                </Box>
 
-                <Box sx={{ mb: 3 }}>
-                    {formData.steps.map((step, index) => (
-                        <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #eee', borderRadius: 1 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                <Typography variant="subtitle1">
-                                    Шаг {step.order}: {step.title}
-                                    {step.id && <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>(ID: {step.id})</Typography>}
-                                </Typography>
-                                <IconButton onClick={() => handleRemoveStep(index)} size="small">
-                                    <RemoveIcon color="error" fontSize="small" />
-                                </IconButton>
-                            </Box>
-                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                {step.description}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                                Время: {step.durationMin} мин
-                            </Typography>
+                    <Box sx={{ mb: 3 }}>
+                        {console.log(111, formData)}
+                        {formData.ingredients.map((ingredient, index) => {
+                            const ingr = ingredients.find(i => i.id == ingredient.ingredientId);
+                            const unit = units.find(u => u.id === ingredient.ingredientUnitId);
 
-                            {stepImagePreviews[index] ? (
-                                <Box sx={{ mt: 2, position: 'relative', width: '100%', maxWidth: 400 }}>
-                                    <img
-                                        src={stepImagePreviews[index]}
-                                        alt={`Шаг ${step.order}`}
-                                        style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 1 }}
-                                    />
-                                    <IconButton
-                                        onClick={() => handleRemoveStepImage(index)}
-                                        sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper' }}
-                                    >
-                                        <CloseIcon />
+                            return (
+                                <Box key={index} sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                    p: 1,
+                                    borderBottom: '1px solid #eee'
+                                }}>
+                                    <Typography sx={{ flex: 2 }}>
+
+                                        {ingr?.name || 'Неизвестный ингредиент'}
+                                    </Typography>
+                                    <Typography sx={{ flex: 1 }}>
+                                        {ingredient.quantity}
+                                    </Typography>
+                                    <Typography sx={{ flex: 2 }}>
+                                        {unit?.shortName || 'Неизвестная единица'}
+                                    </Typography>
+                                    <IconButton onClick={() => handleRemoveIngredient(index)}>
+                                        <RemoveIcon color="error" />
                                     </IconButton>
                                 </Box>
-                            ) : (
-                                <Button
-                                    component="label"
-                                    variant="outlined"
-                                    startIcon={<CloudUploadIcon />}
-                                    sx={{ mt: 2 }}
-                                >
-                                    Добавить фото к шагу
-                                    <VisuallyHiddenInput
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => handleStepImageUpload(e, index)}
-                                    />
-                                </Button>
-                            )}
-                        </Box>
-                    ))}
-                </Box>
+                            );
+                        })}
+                    </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                    <Button variant="outlined" onClick={onClose}>
+                    <Divider sx={{ my: 3 }} />
+
+                    <Typography variant="h6" sx={{ mb: 2 }}>Шаги приготовления</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+                        <TextField
+                            fullWidth
+                            label="Название шага"
+                            value={currentStep.title}
+                            onChange={(e) => setCurrentStep(prev => ({ ...prev, title: e.target.value }))}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Описание шага"
+                            value={currentStep.description}
+                            onChange={(e) => setCurrentStep(prev => ({ ...prev, description: e.target.value }))}
+                            multiline
+                            rows={3}
+                        />
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <TextField
+                                label="Время (мин)"
+                                type="number"
+                                value={currentStep.durationMin}
+                                onChange={(e) => setCurrentStep(prev => ({
+                                    ...prev,
+                                    durationMin: parseInt(e.target.value) || 0
+                                }))}
+                                sx={{ width: 150 }}
+                                InputProps={{ inputProps: { min: 0 } }}
+                            />
+                            <Button
+                                variant="contained"
+                                onClick={handleAddStep}
+                                disabled={!currentStep.title}
+                                startIcon={<AddIcon />}
+                            >
+                                Добавить шаг
+                            </Button>
+                        </Box>
+                    </Box>
+
+                    <Box sx={{ mb: 3 }}>
+                        {formData.steps.map((step, index) => (
+                            <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #eee', borderRadius: 1 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                    <Typography variant="subtitle1">
+                                        Шаг {step.order}: {step.title}
+                                        {step.id && <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>(ID: {step.id})</Typography>}
+                                    </Typography>
+                                    <IconButton onClick={() => handleRemoveStep(index)} size="small">
+                                        <RemoveIcon color="error" fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                                <Typography variant="body2" sx={{ mb: 1 }}>
+                                    {step.description}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    Время: {step.durationMin} мин
+                                </Typography>
+
+
+                            </Box>
+                        ))}
+                    </Box>
+
+
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                        {/* <Button variant="outlined" onClick={onClose}>
                         Отмена
-                    </Button>
-                    <Button
+                    </Button> */}
+                        {/* <Button
                         variant="contained"
                         onClick={handleSubmit}
                         disabled={!formData.title || !formData.ingredients.length || !formData.steps.length}
+                        startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
                     >
-                        Сохранить изменения
-                    </Button>
+                        {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
+
+                    </Button> */}
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, position: 'relative' }}>
+                            <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
+                                Отмена
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={handleSubmit}
+                                disabled={!formData.title || !formData.ingredients.length || !formData.steps.length || isSubmitting}
+                                startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+                                sx={{ minWidth: 150 }}
+                            >
+                                {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
+                            </Button>
+
+                            {isSubmitting && (
+                                <CircularProgress
+                                    size={24}
+                                    sx={{
+                                        position: 'absolute',
+                                        top: '50%',
+                                        left: '50%',
+                                        marginTop: '-12px',
+                                        marginLeft: '-12px',
+                                    }}
+                                />
+                            )}
+                        </Box>
+                    </Box>
                 </Box>
-            </Box>
-        </Modal>
+            </Modal>
+        </>
     );
 };
 

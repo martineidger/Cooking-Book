@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchCurrentUser, logout } from '../store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import CreateRecipeModal from './CreateRecipeModal';
+import AddIcon from '@mui/icons-material/Add';
+import PeopleIcon from '@mui/icons-material/People';
 
 const Header = ({ isLoginPage = false }) => {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -15,7 +17,8 @@ const Header = ({ isLoginPage = false }) => {
 
     // Обработчик открытия модального окна
     const handleOpenModal = () => {
-        setIsModalOpen(true);
+        if (isAuthenticated)
+            setIsModalOpen(true);
     };
 
     // Обработчик закрытия модального окна
@@ -75,7 +78,7 @@ const Header = ({ isLoginPage = false }) => {
 
     return (
         <>
-            <CreateRecipeModal
+            {/* <CreateRecipeModal
                 open={isModalOpen}
                 onClose={handleCloseModal}
             />
@@ -97,7 +100,37 @@ const Header = ({ isLoginPage = false }) => {
                         onClick={() => navigate('/users')}
                     >
                         <span>Повара</span>
-                    </button>
+                    </button> */}
+            <CreateRecipeModal
+                open={isModalOpen}
+                onClose={handleCloseModal}
+            />
+            <header className="header">
+                <div className="header-content">
+                    <a onClick={() => navigate("/")}>
+                        <h1 className="logo">Cooker</h1>
+                    </a>
+
+                    {isAuthenticated && (
+                        <div className="action-panel">
+                            <button
+                                className="panel-button"
+                                onClick={handleOpenModal}
+                                title="Добавить рецепт"
+                            >
+                                <AddIcon fontSize="small" />
+                            </button>
+                            <div className="divider" />
+                            <button
+                                className="panel-button"
+                                onClick={() => navigate('/users')}
+                                title="Список пользователей"
+                            >
+                                <PeopleIcon fontSize="small" />
+                            </button>
+                        </div>
+                    )}
+
                     {!isLoginPage ? (
                         <div className="profile-menu" ref={menuRef}>
                             <div

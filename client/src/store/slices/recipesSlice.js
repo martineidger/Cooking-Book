@@ -160,7 +160,7 @@ export const updateRecipe = createAsyncThunk(
 
             const response = await recipeApi.updateRecipe(id, recipeData);
             console.log('UPDATE RETURN', response)
-            return { ...response.data, id: id };
+            return response;
         } catch (error) {
             return rejectWithValue(error.response.data);
         }
@@ -421,12 +421,15 @@ const recipesSlice = createSlice({
             // ======================== updateRecipe ========================
             .addCase(updateRecipe.fulfilled, (state, action) => {
                 const index = state.recipes.findIndex(recipe => recipe.id === action.payload.id);
-                if (index !== -1) {
-                    state.recipes[index] = action.payload;
-                }
-                if (state.currentRecipe?.id === action.payload.id) {
-                    state.currentRecipe = action.payload;
-                }
+                // if (index !== -1) {
+                //     state.recipes[index] = action.payload;
+                // }
+                // if (state.currentRecipe?.id === action.payload.id) {
+                //     state.currentRecipe = action.payload;
+                // }
+
+                state.currentRecipe = action.payload;
+                console.log(321, state.currentRecipe)
             })
 
             // ======================== deleteRecipe ========================

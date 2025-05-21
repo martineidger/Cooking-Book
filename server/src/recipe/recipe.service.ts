@@ -371,30 +371,41 @@ export class RecipeService {
 
 
 
-  async update(id: string, updateRecipeDto: UpdateRecipeDto): Promise<Recipe> {
-    // 1. Сначала удаляем связи, если нужно
-    // if (
-    //   updateRecipeDto.categoriesToDisconnect?.length ||
-    //   updateRecipeDto.ingredientsToDisconnect?.length
-    // ) {
-    //   await this.prisma.recipe.update({
-    //     where: { id },
-    //     data: {
-    //       categories: {
-    //         disconnect: updateRecipeDto.categoriesToDisconnect?.map(catId => ({
-    //           recipeId_categoryId: {
-    //             recipeId: id,
-    //             categoryId: catId
-    //           }
+  async update(id: string, updateRecipeDto: UpdateRecipeDto): Promise<{ recipe: Recipe, allergens: Allergen[] }> {
+    let oldPhotoDeleted = false;
 
-    //         })) || [],
-    //       },
-    //       // ingredients: {
-    //       //   disconnect: updateRecipeDto.ingredientsToDisconnect?.map(ingrId => ({ id: ingrId })) || [],
-    //       // },
-    //     },
-    //   });
-    // }
+    const currentRecipe = await this.prisma.recipe.findUnique({
+      where: { id },
+      select: {
+        imageId: true,
+        imageUrl: true
+      }
+    });
+
+    if (updateRecipeDto.oldMainPhotoPublicId) {
+      this.photosService.deleteImage(updateRecipeDto.oldMainPhotoPublicId)
+      oldPhotoDeleted = true;
+    }
+
+    if (updateRecipeDto.stepsToDelete?.length) {
+      await this.prisma.cookingStep.deleteMany({
+        where: { id: { in: updateRecipeDto.stepsToDelete } }
+      });
+    }
+
+    // Получаем оставшиеся шаги после удаления
+    const remainingSteps = await this.prisma.cookingStep.findMany({
+      where: { recipeId: id },
+      orderBy: { order: 'asc' }
+    });
+
+    // Обновляем порядок оставшихся шагов
+    for (let i = 0; i < remainingSteps.length; i++) {
+      await this.prisma.cookingStep.update({
+        where: { id: remainingSteps[i].id },
+        data: { order: i + 1 }
+      });
+    }
 
     if (updateRecipeDto.categoriesToDisconnect?.length) {
       await this.prisma.categoryOnRecipe.deleteMany({
@@ -427,7 +438,6 @@ export class RecipeService {
       });
     }
 
-    // 2. Обрабатываем новые/изменённые ингредиенты
     if (updateRecipeDto.ingredients?.length) {
       // Проверяем существование ингредиентов
       const ingredientIds = updateRecipeDto.ingredients.map(i => i.ingredientId).filter(id => id !== undefined);;
@@ -462,8 +472,7 @@ export class RecipeService {
       }
     }
 
-    // 2. Теперь можно выполнять обновление с connect и другими полями
-    return this.prisma.recipe.update({
+    const recipe = await this.prisma.recipe.update({
       where: { id },
       data: {
         ...(updateRecipeDto.title && { title: updateRecipeDto.title }),
@@ -473,20 +482,44 @@ export class RecipeService {
         }),
         ...(updateRecipeDto.portions && { portions: +updateRecipeDto.portions }),
 
-        // categories: updateRecipeDto.categories?.length
-        //   ? {
-        //     connect: updateRecipeDto.categories.map(cat => ({ id: cat.categoryId })),
-        //   }
-        //   : undefined,
 
-        // ingredients: updateRecipeDto.ingredients?.length
-        //   ? {
-        //     connect: updateRecipeDto.ingredients.map(ingr => ({ id: ingr.ingredientId })),
-        //   }
-        //   : undefined,
+        // steps: {
+        //   updateMany: updateRecipeDto.steps
+        //     ?.filter(step => step.id)
+        //     .map(step => ({
+        //       where: { id: step.id },
+        //       data: {
+        //         title: step.title,
+        //         description: step.description,
+        //         order: +step.order,
+        //         durationMin: Number(step.durationMin) ?? 0,
+        //         ...(step.photo && {
+        //           imageUrl: step.photo.url,
+        //           imageId: step.photo.publicId
+        //         }),
+        //         ...(step.oldPhotoPublicId && !step.photo && {
+        //           imageUrl: null,
+        //           imageId: null
+        //         })
+        //       }
+        //     })) || [],
+        //   deleteMany: updateRecipeDto.stepsToDelete?.map(id => ({ id })) || [],
 
-
+        //   create: updateRecipeDto.steps
+        //     ?.filter(step => !step.id)
+        //     .map(step => ({
+        //       title: step.title,
+        //       description: step.description,
+        //       order: +step.order,
+        //       durationMin: Number(step.durationMin) || 0,
+        //       ...(step.photo && {
+        //         imageUrl: step.photo.url,
+        //         imageId: step.photo.publicId
+        //       })
+        //     })) || []
+        // },
         steps: {
+          // Обновляем существующие шаги
           updateMany: updateRecipeDto.steps
             ?.filter(step => step.id)
             .map(step => ({
@@ -506,22 +539,14 @@ export class RecipeService {
                 })
               }
             })) || [],
-          deleteMany: updateRecipeDto.stepsToDelete?.map(id => ({ id })) || [],
-          // create: updateRecipeDto.steps?.filter(step => step !== undefined)
-          //   .map(step => ({
-          //     title: step.title,
-          //     description: step.description,
-          //     order: +step.order,
-          //     durationMin: Number(step.durationMin) || 0,
-          //     imageId: step.photo?.publicId,
-          //     imageUrl: step.photo?.url,
-          //   })) || [],
+
+          // Добавляем новые шаги
           create: updateRecipeDto.steps
             ?.filter(step => !step.id)
-            .map(step => ({
+            .map((step, index) => ({
               title: step.title,
               description: step.description,
-              order: +step.order,
+              order: remainingSteps.length + index + 1,
               durationMin: Number(step.durationMin) || 0,
               ...(step.photo && {
                 imageUrl: step.photo.url,
@@ -530,10 +555,36 @@ export class RecipeService {
             })) || []
         },
 
-        imageId: updateRecipeDto.mainPhoto?.publicId ?? null,
-        imageUrl: updateRecipeDto.mainPhoto?.url ?? null,
+        // imageId: updateRecipeDto.mainPhoto?.publicId ?? null,
+        // imageUrl: updateRecipeDto.mainPhoto?.url ?? null,
+        // imageId: updateRecipeDto.mainPhoto?.publicId ?? currentRecipe?.imageId ?? null,
+        // imageUrl: updateRecipeDto.mainPhoto?.url ?? currentRecipe?.imageUrl ?? null,
+
+        imageUrl: oldPhotoDeleted && updateRecipeDto.mainPhoto?.url ? updateRecipeDto.mainPhoto?.url : null,
+        imageId: oldPhotoDeleted && updateRecipeDto.mainPhoto?.publicId ? updateRecipeDto.mainPhoto?.publicId : null
+
       },
+      include: {
+        ingredients: {
+          include: {
+            ingredient: true,
+            unit: true
+          }
+        },
+        categories: {
+          include: {
+            category: true
+          }
+        },
+        user: true,
+        steps: true
+      }
     });
+
+    return {
+      recipe: recipe,
+      allergens: await this.allergenService.getAllergensFromRecipe(id)
+    }
   }
 
 

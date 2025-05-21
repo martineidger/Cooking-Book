@@ -1,0 +1,348 @@
+// .collection-detail-page {
+//     padding: 24px;
+//     max-width: 1400px;
+//     margin: 0 auto;
+
+//     .page-header {
+//         display: flex;
+//         justify-content: space-between;
+//         align-items: center;
+//         margin-bottom: 32px;
+//         padding-bottom: 16px;
+//         border-bottom: 2px solid #ff6b6b;
+
+//         .page-title {
+//             color: #2f3542;
+//             font-weight: 600;
+//             margin: 0;
+//         }
+
+//         .edit-btn {
+//             color: #ff6b6b;
+//             border-color: #ff6b6b;
+//             transition: all 0.3s ease;
+
+//             &:hover {
+//                 background-color: rgba(255, 107, 107, 0.1);
+//                 border-color: #ff4757;
+//             }
+//         }
+//     }
+
+//     .selection-toolbar {
+//         position: sticky;
+//         top: 0;
+//         z-index: 10;
+//         background-color: white;
+//         padding: 16px 24px;
+//         margin-bottom: 24px;
+//         border-radius: 8px;
+//         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+//         display: flex;
+//         align-items: center;
+//         gap: 16px;
+
+//         .selection-count {
+//             font-weight: 500;
+//             color: #2f3542;
+//         }
+
+//         .action-btn {
+//             color: #57606f;
+//             border-color: #dfe4ea;
+//             transition: all 0.3s ease;
+
+//             &:hover {
+//                 border-color: #ff6b6b;
+//                 color: #ff6b6b;
+//                 background-color: rgba(255, 107, 107, 0.05);
+//             }
+
+//             .MuiSvgIcon-root {
+//                 margin-right: 8px;
+//             }
+//         }
+//     }
+
+//     .recipes-grid {
+//         .MuiCard-root {
+//             height: 100%;
+//             display: flex;
+//             flex-direction: column;
+//             transition: transform 0.3s ease, box-shadow 0.3s ease;
+//             border-radius: 12px;
+//             overflow: hidden;
+//             position: relative;
+
+//             &:hover {
+//                 transform: translateY(-5px);
+//                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+//             }
+
+//             .MuiCheckbox-root {
+//                 position: absolute;
+//                 top: 8px;
+//                 right: 8px;
+//                 z-index: 1;
+//                 color: white;
+//                 background-color: rgba(0, 0, 0, 0.5);
+//                 border-radius: 50%;
+//                 padding: 4px;
+
+//                 &.Mui-checked {
+//                     color: #ff6b6b;
+//                 }
+//             }
+
+//             .MuiCardMedia-root {
+//                 height: 200px;
+//                 background-color: #f1f2f6;
+//             }
+
+//             .MuiCardContent-root {
+//                 flex-grow: 1;
+//                 padding: 16px;
+
+//                 .MuiTypography-h5 {
+//                     font-weight: 600;
+//                     margin-bottom: 8px;
+//                     color: #2f3542;
+//                     display: -webkit-box;
+//                     -webkit-line-clamp: 2;
+//                     -webkit-box-orient: vertical;
+//                     overflow: hidden;
+//                 }
+
+//                 .MuiTypography-body2 {
+//                     color: #57606f;
+//                     display: -webkit-box;
+//                     -webkit-line-clamp: 3;
+//                     -webkit-box-orient: vertical;
+//                     overflow: hidden;
+//                     font-size: 0.9rem;
+//                     line-height: 1.5;
+//                 }
+//             }
+//         }
+//     }
+
+//     // Адаптация для мобильных
+//     @media (max-width: 768px) {
+//         padding: 16px;
+
+//         .page-header {
+//             flex-direction: column;
+//             align-items: flex-start;
+//             gap: 16px;
+//             margin-bottom: 24px;
+
+//             .edit-btn {
+//                 width: 100%;
+//             }
+//         }
+
+//         .selection-toolbar {
+//             flex-wrap: wrap;
+//             padding: 12px;
+//             gap: 8px;
+
+//             .action-btn {
+//                 flex: 1 0 auto;
+//                 font-size: 0.8rem;
+//                 padding: 8px;
+//             }
+//         }
+
+//         .recipes-grid {
+//             .MuiCard-root {
+//                 .MuiCardMedia-root {
+//                     height: 160px;
+//                 }
+//             }
+//         }
+//     }
+// }
+
+.collection-detail-page {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #ff6b6b;
+
+        .page-title {
+            color: #2f3542;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .edit-btn {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: rgba(255, 107, 107, 0.1);
+                border-color: #ff4757;
+            }
+        }
+    }
+
+    .selection-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: white;
+        padding: 16px 24px;
+        margin-bottom: 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .selection-count {
+            font-weight: 500;
+            color: #2f3542;
+        }
+
+        .action-btn {
+            color: #57606f;
+            border-color: #dfe4ea;
+            transition: all 0.3s ease;
+
+            &:hover {
+                border-color: #ff6b6b;
+                color: #ff6b6b;
+                background-color: rgba(255, 107, 107, 0.05);
+            }
+
+            .MuiSvgIcon-root {
+                margin-right: 8px;
+            }
+        }
+    }
+
+    .recipes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+
+        .MuiCard-root {
+            width: 100%; // Фиксированная ширина теперь контролируется grid
+            max-width: 300px; // Максимальная ширина карточки
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin: 0 auto; // Центрирование карточки
+
+            &:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            }
+
+            .MuiCheckbox-root {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                z-index: 1;
+                color: white;
+                background-color: rgba(0, 0, 0, 0.5);
+                border-radius: 50%;
+                padding: 4px;
+
+                &.Mui-checked {
+                    color: #ff6b6b;
+                }
+            }
+
+            .MuiCardMedia-root {
+                height: 200px;
+                background-color: #f1f2f6;
+                width: 100%;
+                object-fit: cover;
+            }
+
+            .MuiCardContent-root {
+                flex-grow: 1;
+                padding: 16px;
+
+                .MuiTypography-h5 {
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    color: #2f3542;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+
+                .MuiTypography-body2 {
+                    color: #57606f;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    font-size: 0.9rem;
+                    line-height: 1.5;
+                }
+            }
+        }
+    }
+
+    // Адаптация для мобильных
+    @media (max-width: 768px) {
+        padding: 16px;
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+
+            .edit-btn {
+                width: 100%;
+            }
+        }
+
+        .selection-toolbar {
+            flex-wrap: wrap;
+            padding: 12px;
+            gap: 8px;
+
+            .action-btn {
+                flex: 1 0 auto;
+                font-size: 0.8rem;
+                padding: 8px;
+            }
+        }
+
+        .recipes-grid {
+            grid-template-columns: 1fr; // Одна колонка на мобильных
+
+            .MuiCard-root {
+                max-width: 100%; // На мобильных занимает всю ширину
+
+                .MuiCardMedia-root {
+                    height: 160px;
+                }
+            }
+        }
+    }
+
+    @media (min-width: 900px) {
+        .recipes-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        }
+    }
+}

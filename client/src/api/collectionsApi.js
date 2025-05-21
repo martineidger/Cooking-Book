@@ -50,6 +50,16 @@ const collectionsApi = {
         }
     },
 
+    getCollectionById: async (collectionId) => {
+        try {
+            const response = await http.get(`collection?collectionId=${collectionId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error getting collection:', error);
+            throw error;
+        }
+    },
+
     getUserCollections: async (userId) => {
         try {
             const response = await http.get(`collection/${userId}`);
@@ -115,6 +125,7 @@ const collectionsApi = {
 
     copyRecipesBetweenCollections: async (copyRecipesDto) => {
         try {
+            console.log('9', copyRecipesDto)
             const response = await http.post('collection/copy', { ...copyRecipesDto, mode: "copy" });
             return response.data;
         } catch (error) {

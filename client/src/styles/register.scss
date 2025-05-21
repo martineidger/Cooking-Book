@@ -1,93 +1,229 @@
+// // src/components/RegisterForm.scss
+// .register-form {
+//     max-width: 400px;
+//     margin: 2rem auto;
+//     padding: 2rem;
+//     background: #fff;
+//     border-radius: 8px;
+//     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+//     h2 {
+//         text-align: center;
+//         color: #333;
+//         margin-bottom: 1.5rem;
+//         font-size: 1.8rem;
+//     }
+
+//     .form-group {
+//         margin-bottom: 1.5rem;
+//         position: relative;
+
+//         label {
+//             display: block;
+//             margin-bottom: 0.5rem;
+//             font-weight: 500;
+//             color: #555;
+//         }
+
+//         input {
+//             width: 100%;
+//             padding: 0.75rem;
+//             border: 1px solid #ddd;
+//             border-radius: 4px;
+//             font-size: 1rem;
+//             transition: border-color 0.3s ease;
+
+//             &:focus {
+//                 outline: none;
+//                 border-color: #4285f4;
+//                 box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+//             }
+
+//             &.error-field {
+//                 border-color: #ff4444;
+
+//                 &:focus {
+//                     box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2);
+//                 }
+//             }
+//         }
+
+//         .field-error {
+//             color: #ff4444;
+//             font-size: 0.8rem;
+//             margin-top: 0.3rem;
+//             display: block;
+//         }
+//     }
+
+//     .error-message {
+//         color: #ff4444;
+//         padding: 0.75rem;
+//         background-color: #ffebee;
+//         border-radius: 4px;
+//         margin-bottom: 1.5rem;
+//         font-size: 0.9rem;
+//         border-left: 3px solid #ff4444;
+//     }
+
+//     .submit-button {
+//         width: 100%;
+//         padding: 0.75rem;
+//         background-color: #4CAF50; // Зеленый цвет для регистрации
+//         color: white;
+//         border: none;
+//         border-radius: 4px;
+//         font-size: 1rem;
+//         font-weight: 500;
+//         cursor: pointer;
+//         transition: background-color 0.3s ease;
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+
+//         &:hover {
+//             background-color: #3d8b40; // Темнее при наведении
+//         }
+
+//         &:disabled {
+//             background-color: #cccccc;
+//             cursor: not-allowed;
+//         }
+
+//         .spinner {
+//             display: inline-block;
+//             width: 16px;
+//             height: 16px;
+//             border: 2px solid rgba(255, 255, 255, 0.3);
+//             border-radius: 50%;
+//             border-top-color: white;
+//             animation: spin 1s ease-in-out infinite;
+//             margin-right: 8px;
+//         }
+//     }
+
+//     @keyframes spin {
+//         to {
+//             transform: rotate(360deg);
+//         }
+//     }
+
+//     @media (max-width: 480px) {
+//         padding: 1.5rem;
+//         margin: 1rem;
+
+//         h2 {
+//             font-size: 1.5rem;
+//         }
+
+//         .form-group input {
+//             padding: 0.65rem;
+//         }
+
+//         .submit-button {
+//             padding: 0.65rem;
+//         }
+//     }
+// }
+
+
 // src/components/RegisterForm.scss
 .register-form {
-    max-width: 400px;
-    margin: 2rem auto;
-    padding: 2rem;
+    max-width: 340px;
+    margin: 1.5rem auto;
+    padding: 1.8rem;
     background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
     h2 {
         text-align: center;
-        color: #333;
+        color: #2f3542;
         margin-bottom: 1.5rem;
-        font-size: 1.8rem;
+        font-size: 1.5rem;
+        font-weight: 600;
     }
 
     .form-group {
-        margin-bottom: 1.5rem;
-        position: relative;
+        margin-bottom: 1.2rem;
 
         label {
             display: block;
             margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #57606f;
             font-weight: 500;
-            color: #555;
         }
 
         input {
             width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
+            padding: 0.8rem 1rem;
+            border: 1px solid #dfe4ea;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
 
             &:focus {
                 outline: none;
-                border-color: #4285f4;
-                box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+                border-color: #4ecdc4; // Бирюзовый акцент
+                box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.15);
+                background-color: #fff;
             }
 
             &.error-field {
-                border-color: #ff4444;
+                border-color: #ff4757;
 
                 &:focus {
-                    box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2);
+                    box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15);
                 }
             }
         }
 
         .field-error {
-            color: #ff4444;
-            font-size: 0.8rem;
-            margin-top: 0.3rem;
-            display: block;
+            color: #ff4757;
+            font-size: 0.75rem;
+            margin-top: 0.4rem;
+            padding-left: 0.5rem;
         }
     }
 
     .error-message {
-        color: #ff4444;
-        padding: 0.75rem;
-        background-color: #ffebee;
-        border-radius: 4px;
-        margin-bottom: 1.5rem;
-        font-size: 0.9rem;
-        border-left: 3px solid #ff4444;
+        color: #ff4757;
+        padding: 0.8rem;
+        background-color: #fff5f6;
+        border-radius: 12px;
+        margin-bottom: 1.2rem;
+        font-size: 0.85rem;
+        border: 1px solid #ffd1d6;
     }
 
     .submit-button {
         width: 100%;
-        padding: 0.75rem;
-        background-color: #4CAF50; // Зеленый цвет для регистрации
+        padding: 0.9rem;
+        background-color: #4ecdc4; // Бирюзовый акцент
         color: white;
         border: none;
-        border-radius: 4px;
-        font-size: 1rem;
-        font-weight: 500;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 600;
         cursor: pointer;
-        transition: background-color 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        transition: all 0.3s ease;
+        margin-top: 0.5rem;
 
         &:hover {
-            background-color: #3d8b40; // Темнее при наведении
+            background-color: #3dbeb5; // Темнее при наведении
+            transform: translateY(-1px);
+        }
+
+        &:active {
+            transform: translateY(0);
         }
 
         &:disabled {
-            background-color: #cccccc;
+            background-color: #a4b0be;
             cursor: not-allowed;
+            transform: none;
         }
 
         .spinner {
@@ -102,6 +238,25 @@
         }
     }
 
+    .form-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.85rem;
+        color: #747d8c;
+
+        a {
+            color: #4ecdc4; // Бирюзовый акцент
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s ease;
+
+            &:hover {
+                color: #3dbeb5;
+                text-decoration: underline;
+            }
+        }
+    }
+
     @keyframes spin {
         to {
             transform: rotate(360deg);
@@ -110,18 +265,19 @@
 
     @media (max-width: 480px) {
         padding: 1.5rem;
-        margin: 1rem;
+        margin: 1rem auto;
+        border-radius: 12px;
 
         h2 {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
         }
 
         .form-group input {
-            padding: 0.65rem;
+            padding: 0.75rem 1rem;
         }
 
         .submit-button {
-            padding: 0.65rem;
+            padding: 0.8rem;
         }
     }
 }

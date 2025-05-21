@@ -143,6 +143,7 @@ import CategoryCuisinePage from './pages/CategoryCuisinePage';
 import { fetchCurrentUser } from './store/slices/authSlice';
 import { ToastContainer } from 'react-toastify';
 import Layout from './pages/Layout';
+import NoAccessPage from './pages/NoAccessPage';
 
 const App = () => {
     const dispatch = useDispatch();
@@ -163,11 +164,15 @@ const App = () => {
                     <Route element={<ProtectedRoute />}>
                         <Route path="/profile/:userId" element={<ProfilePage />} />
                         <Route path="/create" element={<CreateRecipePage />} />
+                        <Route path="/collections" element={<CollectionsPage />} />
+                        <Route path="/collections/:collectionId" element={<CollectionDetailPage />} />
+                        <Route path="/users" element={<UsersPage />} />
                     </Route>
-                    <Route path="/users" element={<UsersPage />} />
+
                     <Route path="/more/:type/:id" element={<CategoryCuisinePage />} />
-                    <Route path="/collections" element={<CollectionsPage />} />
-                    <Route path="/collections/:collectionId" element={<CollectionDetailPage />} />
+                    <Route path="/no-access" element={<NoAccessPage />} />
+                    {/* <Route path="/collections" element={<CollectionsPage />} />
+                    <Route path="/collections/:collectionId" element={<CollectionDetailPage />} /> */}
                 </Route>
             </Routes>
             <ToastContainer

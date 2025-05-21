@@ -14,6 +14,8 @@ import EditProfileModal from '../components/EditProfileModal';
 import { deleteAccount } from '../store/slices/authSlice';
 import Modal from 'react-modal';
 
+Modal.setAppElement('#root');
+
 const ProfilePage = () => {
     const { userId: profileId } = useParams();
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -23,12 +25,13 @@ const ProfilePage = () => {
     const { user: loggedUser } = useSelector(state => state.auth);
     const {
         profileUser,
-        collections,
+        collections: allCollections,
         recipes,
         isLoading,
         hasMoreCollections,
         hasMoreRecipes
     } = useSelector(state => state.profile);
+    const collections = allCollections.filter(col => col.isPublic)
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [followersCount, setFollowersCount] = useState(0)

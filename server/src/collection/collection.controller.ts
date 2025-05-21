@@ -36,6 +36,11 @@ export class CollectionController {
     return this.collectionService.createCollection(createCollectionDto)
   }
 
+  @Get()
+  getById(@Query('collectionId') collectionId: string) {
+    return this.collectionService.getById(collectionId);
+  }
+
   @Get(':id')
   findUserCollections(@Param('id') id: string) {
     return this.collectionService.findOne(id);

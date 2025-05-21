@@ -16,6 +16,51 @@ export class CollectionService {
     private readonly prisma: DatabaseService,
   ) { }
 
+  // async getById(collectionId: string) {
+  //   const recipes = await this.prisma.recipeCollection.findMany({
+  //     where: {
+  //       id: collectionId
+  //     },
+  //     select: {
+  //       //User: true,
+  //       RecipeOnCollection: {
+  //         include: {
+  //           recipe: true
+  //         },
+
+  //       }
+  //     }
+  //   });
+  //   const collection = await this.prisma.recipeCollection.findFirst({
+  //     where: {
+  //       id: collectionId
+  //     }
+  //   });
+  //   return { ...collection, recipes: [...recipes] }
+  // }
+
+  async getById(collectionId: string) {
+    const collection = await this.prisma.recipeCollection.findFirst({
+      where: {
+        id: collectionId
+      },
+      include: {
+        RecipeOnCollection: {
+          include: {
+            recipe: true
+          }
+        }
+      }
+    });
+
+    // Извлекаем рецепты и переименовываем оболочку
+    const recipes = collection?.RecipeOnCollection.map(item => ({
+      recipe: item.recipe
+    })) || [];
+
+    return { ...collection, recipes };
+  }
+
   async getCollectionsByRecipeId(recipeId: string) {
     return this.prisma.recipeCollection.findMany({
       where: {
@@ -139,10 +184,11 @@ export class CollectionService {
           recipeCollectionId: moveRecipesDto.targetCollectionId,
           recipeId: { in: moveRecipesDto.recipeIds },
         },
-        select: { recipeId: true },
+        select: { recipeId: true, recipe: true },
       });
 
       const existingTargetIds = existingTargetLinks.map(link => link.recipeId);
+      const existingsNames = existingTargetLinks.map(link => link.recipe.title);
       const recipesToMove = moveRecipesDto.recipeIds.filter(
         id => !existingTargetIds.includes(id)
       );
@@ -178,8 +224,10 @@ export class CollectionService {
         movedCount: createdLinks.length,
       };
 
+
+
       if (existingTargetIds.length > 0) {
-        result.message = `Некоторые рецепты уже были в целевой коллекции: ${existingTargetIds.join(', ')}. Остальные успешно перемещены.`;
+        result.message = `Некоторые рецепты уже были в целевой коллекции: ${existingsNames.join(', ')}. Остальные успешно перемещены.`;
       } else {
         result.message = 'Все рецепты успешно перемещены';
       }
