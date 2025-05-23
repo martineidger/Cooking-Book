@@ -123,6 +123,17 @@ const collectionsApi = {
         }
     },
 
+    removeRecipesFromCollection: async (removeDto) => {
+        try {
+            console.log(1111111, removeDto)
+            const response = await http.put('collection/remove-recipes', removeDto);
+            return response.data;
+        } catch (error) {
+            console.error('Error removing recipes from collection:', error);
+            throw error;
+        }
+    },
+
     copyRecipesBetweenCollections: async (copyRecipesDto) => {
         try {
             console.log('9', copyRecipesDto)

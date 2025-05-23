@@ -32,12 +32,17 @@ const ProfilePage = () => {
         hasMoreRecipes
     } = useSelector(state => state.profile);
     const collections = allCollections.filter(col => col.isPublic)
+    const isAdmin = loggedUser.role === 'Admin';
+    console.log(profileUser)
+    const isAdminPage = profileUser && profileUser.role === 'Admin'//profileUser.role === 'Admin'
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [followersCount, setFollowersCount] = useState(0)
+    const [collectionCount, setCollectionCount] = useState(0)
 
     const [isFollowing, setIsFollowing] = useState(false);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('collections');
 
     // useEffect(() => {
     //     const fetch = async () => {
@@ -84,6 +89,13 @@ const ProfilePage = () => {
         if (profileUser?.stats?.followersCount) {
             setFollowersCount(profileUser.stats.followersCount);
         }
+
+        if (profileUser?.stats?.publicCollectionCount) {
+            setCollectionCount(profileUser.stats.publicCollectionCount)
+        }
+
+        if (isAdminPage)
+            setActiveTab("recipes")
     }, [profileUser]);
 
     useEffect(() => {
@@ -152,7 +164,7 @@ const ProfilePage = () => {
     // console.log('PROFILE USER', profileUser)
     // console.log('PROFILE id', profileId)
 
-    const [activeTab, setActiveTab] = useState('collections');
+
 
 
     const loadMoreCollections = () => {
@@ -192,6 +204,9 @@ const ProfilePage = () => {
                 </div>
             </Modal>
 
+            <button className="back-button" onClick={() => navigate(-1)}>
+                &larr; Назад
+            </button>
             <EditProfileModal
                 open={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
@@ -212,25 +227,28 @@ const ProfilePage = () => {
                     </div>
                     <div className="profile-info">
                         <h1>{profileUser?.username || profileUser?.email}</h1>
-                        <p className="profile-bio">{profileUser?.bio || 'Пользователь пока не добавил информацию о себе'}</p>
+                        {isAdminPage && <p className="profile-bio">Это страница администратора приложения</p>}
 
                         <div className="profile-stats">
                             <div className="stat-item">
                                 <span className="stat-number">{profileUser?.stats?.recipeCount || 0}</span>
                                 <span className="stat-label">Рецептов</span>
                             </div>
-                            <div className="stat-item">
-                                <span className="stat-number">{profileUser?.stats?.publicCollectionsCount || 0}</span>
-                                <span className="stat-label">Коллекций</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-number">{/*profileUser?.stats?.followersCount || 0*/followersCount}</span>
-                                <span className="stat-label">Подписчиков</span>
-                            </div>
+                            {!isAdminPage && (
+                                <>
+                                    <div className="stat-item">
+                                        <span className="stat-number">{collectionCount}</span>
+                                        <span className="stat-label">Коллекций</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-number">{followersCount}</span>
+                                        <span className="stat-label">Подписчиков</span>
+                                    </div>
+                                </>)}
                         </div>
 
                         <div className="profile-actions">
-                            {isCurrentUserProfile ? (
+                            {isCurrentUserProfile && !isAdminPage ? (
                                 <>
                                     <Button
                                         variant="contained"
@@ -239,7 +257,7 @@ const ProfilePage = () => {
                                     >
                                         Редактировать профиль
                                     </Button>
-                                    <Button
+                                    {/* <Button
                                         onClick={() => {
                                             console.log(12345);
                                             setIsDeleteModalOpen(true)
@@ -247,24 +265,35 @@ const ProfilePage = () => {
                                         color="delete"
                                     >
                                         Удалить аккаунт
-                                    </Button>
+                                    </Button> */}
                                 </>
-                            ) : (
-                                <Button
+                            ) :
+                                !isAdmin && <Button
                                     variant="contained"
                                     color={isFollowing ? 'secondary' : 'primary'}
                                     onClick={handleFollow}
                                     disabled={isFollowLoading}
                                 >
                                     {isFollowing ? 'Отписаться' : 'Подписаться'}
+                                </Button>}
+
+                            {(isAdmin || isCurrentUserProfile) && (
+                                <Button
+                                    onClick={() => {
+                                        console.log(12345);
+                                        setIsDeleteModalOpen(true)
+                                    }}
+                                    color="delete"
+                                >
+                                    Удалить аккаунт
                                 </Button>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Подписки */}
-                <div className="profile-section">
+
+                {!isAdminPage && <div className="profile-section">
                     <h2>Подписки ({profileUser?.stats?.followingCount || 0})</h2>
                     {followings && followings.length > 0 ? (
                         <div className="subscriptions-grid">
@@ -277,16 +306,16 @@ const ProfilePage = () => {
                             {isCurrentUserProfile ? 'Вы пока ни на кого не подписаны' : 'Пользователь пока ни на кого не подписан'}
                         </p>
                     )}
-                </div>
+                </div>}
 
                 {/* Табы для переключения между коллекциями и рецептами */}
                 <div className="profile-tabs">
-                    <button
+                    {!isAdminPage && (<button
                         className={`tab-button ${activeTab === 'collections' ? 'active' : ''}`}
                         onClick={() => setActiveTab('collections')}
                     >
                         Коллекции
-                    </button>
+                    </button>)}
                     <button
                         className={`tab-button ${activeTab === 'recipes' ? 'active' : ''}`}
                         onClick={() => setActiveTab('recipes')}
@@ -296,7 +325,7 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Список коллекций */}
-                {activeTab === 'collections' && (
+                {activeTab === 'collections' && !isAdminPage && (
                     <div className="profile-section">
                         <InfiniteScroll
                             dataLength={collections.length}

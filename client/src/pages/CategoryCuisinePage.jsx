@@ -11,9 +11,12 @@ const CategoryCuisinePage = () => {
 
     const { type, id } = useParams();
     const dispatch = useDispatch();
+    const navigate = useNavigate()
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('recipes');
     const [isFollowed, setFollowed] = useState(useSelector(state => state.categories.isFollowed))
+    const { isAuthenticated, user } = useSelector(state => state.auth);
+
 
     // 2. Все useSelector должны быть в одном блоке
     const { recipes, details } = useSelector(state =>
@@ -115,19 +118,23 @@ const CategoryCuisinePage = () => {
     // }));
 
     console.log('IS FOLLOWED', isFollowed)
+    const isAdmin = user && user.role === 'Admin'
 
     return (
         <>
             {/* <Header /> */}
             <div className="category-cuisine-page">
+                <button className="back-button" onClick={() => navigate(-1)}>
+                    &larr; Назад
+                </button>
                 <div className="hero-section" style={{
-                    backgroundImage: `url(${details.imageUrl || '/default-banner.jpg'})`
+                    backgroundImage: `url(${details.imageUrl || '/img/img1.jpg'})`
                 }}>
                     <div className="hero-overlay">
                         <h1>{details.name}</h1>
                         <p className="description">{details.description}</p>
 
-                        {type === 'category' && (
+                        {isAuthenticated && !isAdmin && type === 'category' && (
                             <button
                                 onClick={handleToggleFollow}
                                 style={{

@@ -8,6 +8,7 @@ import { CopyMoveRecipesDto } from 'src/dto/collection/copy-move-recipes.dto';
 import { DeleteRecipeFromCollectionDto } from 'src/dto/collection/delete-recipe.dto';
 import { AddRemoveFromFavDto } from 'src/dto/collection/add-remove-from-fav.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { RemoveRecipesDto } from 'src/dto/collection/remove-recipes.dto';
 
 @Controller('collection')
 export class CollectionController {
@@ -85,6 +86,11 @@ export class CollectionController {
   @Put('remove-from-collection')
   removeRecipeFromCollection(@Body() removeDto: DeleteRecipeFromCollectionDto) {
     return this.collectionService.removeRecipe(removeDto);
+  }
+
+  @Put('remove-recipes')
+  removeRecipesFromCollection(@Body() removeDto: RemoveRecipesDto) {
+    return this.collectionService.removeRecipes(removeDto);
   }
 
   @Put('remove-from-fav')

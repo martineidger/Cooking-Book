@@ -182,6 +182,7 @@ export class RecipeController {
       { name: 'mainPhoto', maxCount: 1 },
 
     ]),
+    //AnyFilesInterceptor(),
     CloudinaryInterceptor,
   )
   @Put(':id')

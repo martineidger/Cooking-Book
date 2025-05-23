@@ -143,7 +143,7 @@ const RecipePage = () => {
                     </div>
                 </Modal>
 
-                {isAuthenticated && <RecipeActions recipeId={id} />}
+                {(isAuthenticated && !isAdmin) && <RecipeActions recipeId={id} />}
 
                 <div className="recipe-actions">
                     <button className="back-button" onClick={() => navigate(-1)}>

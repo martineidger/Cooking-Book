@@ -15,6 +15,8 @@ const Header = ({ isLoginPage = false }) => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const isAdmin = user && user.role === 'Admin'
+
     // Обработчик открытия модального окна
     const handleOpenModal = () => {
         if (isAuthenticated)
@@ -34,8 +36,14 @@ const Header = ({ isLoginPage = false }) => {
             : user.email.charAt(0).toUpperCase()) : 'a';
 
 
-    const handleLogout = () => {
+    // const handleLogout = () => {
+    //     navigate('/login');
+    //     dispatch(logout());
+    // };
+    const handleLogout = async () => {
         dispatch(logout());
+        await new Promise(resolve => setTimeout(resolve, 50));
+        setIsMenuOpen(false)
         navigate('/login');
     };
 
@@ -177,23 +185,26 @@ const Header = ({ isLoginPage = false }) => {
                                             >
                                                 <span>Главная</span>
                                             </button>
-                                            <button
-                                                className="menu-item "
-                                                onClick={handleToCollections}
-                                            >
-                                                <span>Мои коллекции</span>
-                                            </button>
-                                            <button
-                                                className="menu-item "
-                                                onClick={handleToFavorites}
-                                            >
-                                                <span>Избранное</span>
-                                            </button>
+                                            {!isAdmin && (
+                                                <>
+                                                    <button
+                                                        className="menu-item "
+                                                        onClick={handleToCollections}
+                                                    >
+                                                        <span>Мои коллекции</span>
+                                                    </button>
+                                                    <button
+                                                        className="menu-item "
+                                                        onClick={handleToFavorites}
+                                                    >
+                                                        <span>Избранное</span>
+                                                    </button></>)}
                                             <div className="menu-divider"></div>
                                             <button
                                                 className="menu-item logout"
                                                 onClick={handleLogout}
                                             >
+
                                                 <span>Выйти</span>
                                             </button>
                                         </>) : (

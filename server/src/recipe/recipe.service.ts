@@ -116,7 +116,7 @@ export class RecipeService {
             title: step.title,
             description: step.description,
             order: +step.order,
-            durationMin: step.durationMin || 0,
+            durationMin: Number(step.durationMin) || 0,
             ...(step.photo && {
               imageUrl: step.photo.url,
               imageId: step.photo.publicId
@@ -253,6 +253,111 @@ export class RecipeService {
   }
 
 
+  // async findAll(
+  //   page: number = 1,
+  //   limit: number = 10,
+  //   categoryIds?: string,
+  //   cuisineIds?: string,
+  //   ingredientIds?: string[],
+  //   sortBy?: string,
+  //   sortOrder: 'asc' | 'desc' = 'asc',
+  //   searchTerm?: string,
+  // ): Promise<{
+  //   recipes: { recipe: Recipe; allergens: Allergen[] }[],
+  //   total: number,
+  //   page: number,
+  //   limit: number,
+  //   totalPages: number
+  // }> {
+  //   const categories = categoryIds?.split(',');
+  //   const cuisines = cuisineIds?.split(',');
+  //   const where: Prisma.RecipeWhereInput = {
+  //     AND: [
+  //       {
+  //         ...(categoryIds && { categories: { some: { categoryId: { in: categories } } } }),
+  //         ...(cuisineIds && { cuisineId: { in: cuisines } }),
+  //         ...(ingredientIds && {
+  //           ingredients: {
+  //             some: {
+  //               ingredientId: {
+  //                 in: ingredientIds,
+  //               },
+  //             },
+  //           },
+  //         }),
+  //       },
+  //       ...(searchTerm ? [{
+  //         OR: [
+  //           { title: { contains: searchTerm, mode: 'insensitive' as const } },
+  //           { description: { contains: searchTerm, mode: 'insensitive' as const } },
+  //         ],
+  //       }] : []),
+  //     ].filter(Boolean),
+  //   };
+
+  //   let orderBy: Prisma.RecipeOrderByWithRelationInput | undefined;
+  //   if (sortBy) {
+  //     switch (sortBy) {
+  //       case 'title':
+  //         orderBy = { title: sortOrder };
+  //         break;
+  //       case 'createdAt':
+  //         orderBy = { createdAt: sortOrder };
+  //         break;
+  //       default:
+  //         orderBy = { createdAt: 'desc' }; // Сортировка по умолчанию
+  //     }
+  //   }
+
+  //   const offset = (page - 1) * limit;
+
+  //   const total = await this.prisma.recipe.count({ where });
+
+  //   const recipesPagination = await this.prisma.recipe.findMany({
+  //     where,
+  //     orderBy,
+  //     skip: offset,
+  //     take: +limit,
+  //     include: {
+  //       ingredients: {
+  //         include: {
+  //           ingredient: true,
+  //           unit: true,
+  //         },
+  //       },
+  //       cuisine: true,
+  //       categories: {
+  //         include: {
+  //           category: true,
+  //         },
+  //       },
+  //       steps: true,
+  //       user: true
+  //     },
+  //   });
+
+  //   const recipes = await Promise.all(
+  //     recipesPagination.map(async (recipe) => {
+  //       const allergens = await this.allergenService.getAllergensFromRecipe(recipe.id);
+  //       return {
+  //         recipe: {
+  //           ...recipe,
+  //           categories: recipe.categories.map(c => c.category),
+  //         },
+  //         allergens
+  //       };
+  //     })
+  //   );
+
+  //   return {
+  //     recipes,
+  //     total,
+  //     page,
+  //     limit,
+  //     totalPages: Math.ceil(total / limit),
+  //   };
+  // }
+
   async findAll(
     page: number = 1,
     limit: number = 10,
@@ -269,10 +374,8 @@ export class RecipeService {
     limit: number,
     totalPages: number
   }> {
-
     const categories = categoryIds?.split(',');
     const cuisines = cuisineIds?.split(',');
-    // 1. Подготавливаем условия для фильтрации (where)
     const where: Prisma.RecipeWhereInput = {
       AND: [
         {
@@ -297,10 +400,59 @@ export class RecipeService {
       ].filter(Boolean),
     };
 
-    // 2. Сортировка (orderBy) - исправленная версия
+    const total = await this.prisma.recipe.count({ where });
+
+    if (sortBy === 'cookingTime') {
+      // Получаем *все* рецепты под фильтр (без сортировки и пагинации)
+      const allRecipes = await this.prisma.recipe.findMany({
+        where,
+        include: {
+          ingredients: {
+            include: { ingredient: true, unit: true },
+          },
+          cuisine: true,
+          categories: { include: { category: true } },
+          steps: true,
+          user: true,
+        },
+      });
+
+      const recipesWithTime = await Promise.all(
+        allRecipes.map(async (recipe) => {
+          const totalCookingTime = recipe.steps.reduce((sum, step) => sum + (step.durationMin || 0), 0);
+          const allergens = await this.allergenService.getAllergensFromRecipe(recipe.id);
+
+          return {
+            recipe: {
+              ...recipe,
+              categories: recipe.categories.map(c => c.category),
+            },
+            allergens,
+            totalCookingTime,
+          };
+        })
+      );
+
+      // Сортируем вручную
+      recipesWithTime.sort((a, b) =>
+        sortOrder === 'asc' ? a.totalCookingTime - b.totalCookingTime : b.totalCookingTime - a.totalCookingTime
+      );
+
+      // Пагинация вручную
+      const paginatedRecipes = recipesWithTime.slice((page - 1) * limit, page * limit);
+
+      return {
+        recipes: paginatedRecipes.map(({ recipe, allergens }) => ({ recipe, allergens })),
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    }
+
+    // Для других сортировок передаем в Prisma напрямую
     let orderBy: Prisma.RecipeOrderByWithRelationInput | undefined;
     if (sortBy) {
-      // Явно указываем возможные поля для сортировки
       switch (sortBy) {
         case 'title':
           orderBy = { title: sortOrder };
@@ -308,41 +460,24 @@ export class RecipeService {
         case 'createdAt':
           orderBy = { createdAt: sortOrder };
           break;
-
-
-        // Добавьте другие поддерживаемые поля сортировки
         default:
-          orderBy = { createdAt: 'desc' }; // Сортировка по умолчанию
+          orderBy = { createdAt: 'desc' };
       }
     }
 
-    // 3. Вычисляем offset
     const offset = (page - 1) * limit;
 
-    // 4. Получаем общее количество рецептов
-    const total = await this.prisma.recipe.count({ where });
-
-    // 5. Получаем рецепты с пагинацией (без аллергенов)
     const recipesPagination = await this.prisma.recipe.findMany({
       where,
       orderBy,
       skip: offset,
       take: +limit,
       include: {
-        ingredients: {
-          include: {
-            ingredient: true,
-            unit: true,
-          },
-        },
+        ingredients: { include: { ingredient: true, unit: true } },
         cuisine: true,
-        categories: {
-          include: {
-            category: true,
-          },
-        },
+        categories: { include: { category: true } },
         steps: true,
-        user: true
+        user: true,
       },
     });
 
@@ -354,12 +489,11 @@ export class RecipeService {
             ...recipe,
             categories: recipe.categories.map(c => c.category),
           },
-          allergens
+          allergens,
         };
       })
     );
 
-    // 7. Возвращаем данные с пагинацией
     return {
       recipes,
       total,
@@ -371,8 +505,12 @@ export class RecipeService {
 
 
 
+
   async update(id: string, updateRecipeDto: UpdateRecipeDto): Promise<{ recipe: Recipe, allergens: Allergen[] }> {
     let oldPhotoDeleted = false;
+    let updating = false;
+    let deleting = false;
+    let creating = false;
 
     const currentRecipe = await this.prisma.recipe.findUnique({
       where: { id },
@@ -384,8 +522,15 @@ export class RecipeService {
 
     if (updateRecipeDto.oldMainPhotoPublicId) {
       this.photosService.deleteImage(updateRecipeDto.oldMainPhotoPublicId)
+      if (updateRecipeDto.mainPhoto)
+        updating = true;
+      else
+        deleting = true;
       oldPhotoDeleted = true;
     }
+
+    if (!oldPhotoDeleted && updateRecipeDto.mainPhoto)
+      creating = true;
 
     if (updateRecipeDto.stepsToDelete?.length) {
       await this.prisma.cookingStep.deleteMany({
@@ -560,8 +705,8 @@ export class RecipeService {
         // imageId: updateRecipeDto.mainPhoto?.publicId ?? currentRecipe?.imageId ?? null,
         // imageUrl: updateRecipeDto.mainPhoto?.url ?? currentRecipe?.imageUrl ?? null,
 
-        imageUrl: oldPhotoDeleted && updateRecipeDto.mainPhoto?.url ? updateRecipeDto.mainPhoto?.url : null,
-        imageId: oldPhotoDeleted && updateRecipeDto.mainPhoto?.publicId ? updateRecipeDto.mainPhoto?.publicId : null
+        imageUrl: (creating || updating) && !deleting ? updateRecipeDto.mainPhoto?.url : null,
+        imageId: (creating || updating) && !deleting ? updateRecipeDto.mainPhoto?.publicId : null
 
       },
       include: {

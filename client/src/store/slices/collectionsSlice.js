@@ -138,6 +138,24 @@ export const removeRecipeFromUserCollection = createAsyncThunk(
     }
 );
 
+export const removeRecipesFromUserCollection = createAsyncThunk(
+    'collections/removeRecipesFromUserCollection',
+    async (removeDto, { rejectWithValue }) => {
+        try {
+            const userId = localStorage.getItem('userId')
+            console.log(987654, removeDto)
+            await collectionsApi.removeRecipesFromCollection({
+                userId: userId,
+                collectionId: removeDto.collectionId,
+                recipesIds: removeDto.recipeIds
+            });
+            return removeDto;
+        } catch (err) {
+            return rejectWithValue(err.response?.data || err.message);
+        }
+    }
+);
+
 export const moveRecipes = createAsyncThunk(
     'collections/moveRecipes',
     async (moveRecipesDto, { rejectWithValue }) => {
@@ -309,21 +327,55 @@ const collectionsSlice = createSlice({
                     collection.recipes = collection.recipes.filter(id => id !== recipeId);
                 }
             })
+            .addCase(removeRecipesFromUserCollection.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                const { collectionId, recipeId } = action.meta.arg;
+                const collection = state.collections.find(c => c.id === collectionId);
+                if (collection) {
+                    collection.recipes = collection.recipes.filter(id => id !== recipeId);
+                }
+            })
             .addCase(moveRecipes.fulfilled, (state, action) => {
-                console.log(55666, action.payload)
-                console.log(11223, state.recipesOnCollection)
-                state.recipesOnCollection.filter(recipe => !recipeIds.includes(recipe.recipeId));
-                const target = state.collections.find(c => c.id === targetCollectionId);
+                // console.log(55666, action.payload)
+                // console.log(11223, state.recipesOnCollection)
+                // state.recipesOnCollection.filter(recipe => !recipeIds.includes(recipe.recipeId));
+                // const target = state.collections.find(c => c.id === targetCollectionId);
+
+                // state.status = 'succeeded';
+                // // if (source && target) {
+                // //     source.recipes = source.recipes.filter(id => !recipeIds.includes(id));
+                // //     recipeIds.forEach(id => {
+                // //         if (!target.recipes.includes(id)) {
+                // //             target.recipes.push(id);
+                // //         }
+                // //     });
+                // // }
+                const { sourceId, targetId, recipeIds } = action.payload;
+
+                // Удаляем рецепты из source коллекции
+                const source = state.collections.find(c => c.id === sourceId);
+                const target = state.collections.find(c => c.id === targetId);
+
+                if (source && target) {
+                    source.recipes = source.recipes.filter(id => !recipeIds.includes(id));
+                    recipeIds.forEach(id => {
+                        if (!target.recipes.includes(id)) {
+                            target.recipes.push(id);
+                        }
+                    });
+                }
+
+                // Обновляем recipesOnCollection, если оно связано с source коллекцией
+                if (state.currentCollection?.id === sourceId) {
+                    state.recipesOnCollection = state.recipesOnCollection.filter(
+                        recipe => !recipeIds.includes(recipe.recipeId)
+                    );
+                }
+
+                // Если recipesOnCollection связан с target, можно добавить туда новые рецепты,
+                // но скорее всего они не загружены — тогда нужно либо обновить с сервера, либо добавить вручную.
 
                 state.status = 'succeeded';
-                // if (source && target) {
-                //     source.recipes = source.recipes.filter(id => !recipeIds.includes(id));
-                //     recipeIds.forEach(id => {
-                //         if (!target.recipes.includes(id)) {
-                //             target.recipes.push(id);
-                //         }
-                //     });
-                // }
             })
 
             .addCase(copyRecipes.fulfilled, (state, action) => {

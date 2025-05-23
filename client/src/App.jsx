@@ -144,6 +144,8 @@ import { fetchCurrentUser } from './store/slices/authSlice';
 import { ToastContainer } from 'react-toastify';
 import Layout from './pages/Layout';
 import NoAccessPage from './pages/NoAccessPage';
+import NotFoundPage from './pages/NotFoundPage';
+import CategoryCuisineListPage from './pages/CategoryCuisineListPage';
 
 const App = () => {
     const dispatch = useDispatch();
@@ -155,7 +157,7 @@ const App = () => {
     return (
         <>
             <Routes>
-                {/* Используем Layout как родительский компонент для всех маршрутов */}
+
                 <Route path="/" element={<Layout />}>
                     <Route path="/" element={<MainPage />} />
                     <Route path="/login" element={<AuthPage />} />
@@ -170,9 +172,12 @@ const App = () => {
                     </Route>
 
                     <Route path="/more/:type/:id" element={<CategoryCuisinePage />} />
+                    <Route path="/categories-cuisines" element={<CategoryCuisineListPage />} />
                     <Route path="/no-access" element={<NoAccessPage />} />
                     {/* <Route path="/collections" element={<CollectionsPage />} />
                     <Route path="/collections/:collectionId" element={<CollectionDetailPage />} /> */}
+                    <Route path="*" element={<NotFoundPage />} />
+
                 </Route>
             </Routes>
             <ToastContainer

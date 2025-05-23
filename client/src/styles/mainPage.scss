@@ -328,7 +328,7 @@ $light-green: #064630;
         flex-wrap: wrap;
         margin-left: -1rem;
         /* Adjust gap between columns */
-        width: auto;
+        width: 100%;
     }
 
     .my-masonry-grid_column {
@@ -519,6 +519,7 @@ $light-green: #064630;
 }
 
 .quick-filters {
+    margin-top: 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -593,7 +594,13 @@ $light-green: #064630;
     }
 }
 
-// main .recipe-card span {
-//     font-size: 14px !important;
-//     color: #515151 !important;
-// }
+main {
+    .my-masonry-grid {
+        width: 100% !important;
+    }
+
+    .my-masonry-grid_column {
+        margin-left: 10px !important;
+        gap: 10px !important;
+    }
+}

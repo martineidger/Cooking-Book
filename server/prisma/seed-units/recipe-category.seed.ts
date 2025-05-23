@@ -10,7 +10,8 @@ const categoriesData = [
     'Закуски',
     'Напитки',
     'Соусы',
-    'Вегетарианские'
+    'Вегетарианские',
+    'Другие'
 ];
 
 export async function seedCategories(prisma: PrismaClient) {

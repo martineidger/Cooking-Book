@@ -154,7 +154,7 @@ const RecipeCard = ({ recipe }) => {
         >
             <div className={`recipe-image-container ${showIngredients ? 'show-ingredients' : ''}`}>
                 <img
-                    src={recipe.imageUrl || 'img/default-img.jpg'}
+                    src={recipe.imageUrl || '/img/default-img.jpg'}
                     alt={recipe.title}
                     className="recipe-image"
                 />

@@ -24,9 +24,11 @@ import {
 import SubscriptionsSection from '../components/SubscriptionsSection';
 import CategoriesSection from '../components/CategoriesSection';
 import SearchByIngredientsCount from '../components/SearchByIngredientsCount';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate()
     const recipes = useSelector(selectAllRecipes);
     const status = useSelector(selectRecipesStatus);
     const error = useSelector(selectRecipesError);
@@ -170,7 +172,7 @@ const HomePage = () => {
     return (
         <>
             {/* <Header /> */}
-            <SearchByIngredientsCount />
+            {/* <SearchByIngredientsCount /> */}
             <div className="home-page">
                 <main className="main-content">
                     <section className="hero-section">
@@ -209,7 +211,7 @@ const HomePage = () => {
                             <div className="search-container">
                                 <input
                                     type="text"
-                                    placeholder="Найти рецепты по названию или ингредиентам"
+                                    placeholder="Найти рецепты по названию "
                                     onChange={(e) => handleSearch(e.target.value)}
                                     value={filters.searchTerm || ''}
                                 />
@@ -220,7 +222,7 @@ const HomePage = () => {
 
                             <section className="filters-section">
                                 <div className="filter-group">
-                                    <h3>Категории</h3>
+                                    <h3 onClick={() => navigate('/categories-cuisines')}>Категории</h3>
                                     <div className="chips-container">
                                         {categories.map(category => (
                                             <button
@@ -235,7 +237,7 @@ const HomePage = () => {
                                 </div>
 
                                 <div className="filter-group">
-                                    <h3>Кухни мира</h3>
+                                    <h3 onClick={() => navigate('/categories-cuisines')}>Кухни мира</h3>
                                     <div className="chips-container">
                                         {cuisines.map(cuisine => (
                                             <button
@@ -258,7 +260,7 @@ const HomePage = () => {
                                         >
                                             <option value="title">Название</option>
                                             <option value="createdAt">Дата создания</option>
-                                            {/* <option value="cookingTime">По времени</option> */}
+                                            <option value="cookingTime">По времени готовки</option>
                                         </select>
 
                                         <select

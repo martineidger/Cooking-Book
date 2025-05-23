@@ -315,6 +315,7 @@ import {
     removeFromUserFavorites,
     removeRecipeFromUserCollection,
     fetchCollectionById,
+    removeRecipesFromUserCollection,
 } from '../store/slices/collectionsSlice';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
@@ -363,32 +364,56 @@ const CollectionDetailPage = () => {
 
 
     console.log(collections)
+    const loadRecipes = async () => {
+        try {
+            setLoading(true);
+            let result;
+
+            if (isFavorites)
+                result = await dispatch(fetchFavorites());
+            else {
+                await dispatch(fetchCollectionById(collectionId))
+                await dispatch(fetchRecipesFromCollection(collectionId));
+
+                // console.log('RESULT', result.payload.map(collection => collection.collection.userId))
+                // ownerId = result.payload.map(collection => collection.collection.userId)[0];
+                await dispatch(fetchUserCollections(userId))
+            }
+
+            //setRecipes(result.payload); // Сохраняем полученные рецепты в состоянии
+        } catch (error) {
+            console.error('Ошибка загрузки рецептов:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const loadRecipes = async () => {
-            try {
-                setLoading(true);
-                let result;
+        // const loadRecipes = async () => {
+        //     try {
+        //         setLoading(true);
+        //         let result;
 
-                if (isFavorites)
-                    result = await dispatch(fetchFavorites());
-                else {
-                    await dispatch(fetchCollectionById(collectionId))
-                    await dispatch(fetchRecipesFromCollection(collectionId));
+        //         if (isFavorites)
+        //             result = await dispatch(fetchFavorites());
+        //         else {
+        //             await dispatch(fetchCollectionById(collectionId))
+        //             await dispatch(fetchRecipesFromCollection(collectionId));
 
-                    // console.log('RESULT', result.payload.map(collection => collection.collection.userId))
-                    // ownerId = result.payload.map(collection => collection.collection.userId)[0];
+        //             // console.log('RESULT', result.payload.map(collection => collection.collection.userId))
+        //             // ownerId = result.payload.map(collection => collection.collection.userId)[0];
 
-                    await dispatch(fetchUserCollections(userId))
-                }
+        //             await dispatch(fetchUserCollections(userId))
+        //         }
 
-                //setRecipes(result.payload); // Сохраняем полученные рецепты в состоянии
-            } catch (error) {
-                console.error('Ошибка загрузки рецептов:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        //         //setRecipes(result.payload); // Сохраняем полученные рецепты в состоянии
+        //     } catch (error) {
+        //         console.error('Ошибка загрузки рецептов:', error);
+        //     } finally {
+        //         setLoading(false);
+        //     }
+
+
 
         loadRecipes();
         console.log(recipes)
@@ -443,34 +468,30 @@ const CollectionDetailPage = () => {
     };
 
     const handleDeleteSelected = () => {
-        if (isFavorites) {
-            dispatch(removeFromUserFavorites(selectedRecipes))
-            selectedRecipes.forEach(recipeId => {
+        const deleteRecipes = async () => {
+            if (isFavorites) {
+                await dispatch(removeFromUserFavorites(selectedRecipes))
+                selectedRecipes.forEach(recipeId => {
 
-                dispatch(removeFromFavorites(recipeId));
-            });
-        } else {
-            dispatch(removeRecipeFromUserCollection({ collectionId, selectedRecipes }))
-            selectedRecipes.forEach(recipeId => {
+                    dispatch(removeFromFavorites(recipeId));
+                });
+            } else {
+                await dispatch(removeRecipesFromUserCollection({ collectionId, recipeIds: selectedRecipes }))
+                // selectedRecipes.forEach(recipeId => {
 
-                dispatch(removeRecipeFromCollection({ collectionId, recipeId }));
-            });
+                //     dispatch(removeRecipeFromCollection({ collectionId, recipeId }));
+                // });
+
+            }
         }
+        deleteRecipes()
         setSelectedRecipes([]);
+        loadRecipes();
+        //window.location.reload();
     };
 
     const handleMoveToCollection = (targetId) => {
-        // if (isFavorites) {
-        //     // Из избранного можно только удалять
-        //     return;
-        // }
-        // dispatch(moveRecipes({
-        //     sourceCollectionId: collectionId,
-        //     targetCollectionId: targetId,
-        //     recipeIds: [...selectedRecipes],
-        // }));
-        // setSelectedRecipes([]);
-        // setShowMoveModal(false);
+
         collectionsToMove.push(targetId)
     };
 
@@ -494,24 +515,31 @@ const CollectionDetailPage = () => {
         collectionsToMove = []
     }
 
-    const saveMoveToCollection = (targetIds) => {
+    const saveMoveToCollection = async (targetIds) => {
 
-        //const targetIds = collectionsToCopy;
-        console.log('save', selectedRecipes, targetIds)
-        targetIds.length > 0 && targetIds.map(id => {
-            let result = dispatch(moveRecipes({
-                sourceCollectionId: collectionId,
-                targetCollectionId: id,
-                recipeIds: selectedRecipes,
-            }));
+        const move = async () => {
+            console.log('save', selectedRecipes, targetIds)
+            targetIds.length > 0 && targetIds.map(id = async () => {
+                let result = await dispatch(moveRecipes({
+                    sourceCollectionId: collectionId,
+                    targetCollectionId: id,
+                    recipeIds: selectedRecipes,
+                }));
 
-            console.log(999, result)
-            setError(result.message)
-            setOpenSnackbar(true)
-        })
+                console.log(999, result)
+                setError(result.message)
+                setOpenSnackbar(true)
+            })
+        }
+        move()
+
         setSelectedRecipes([]);
         setShowMoveModal(false);
         collectionsToCopy = []
+
+        //recipes = recipes.filter(recipe => !selectedRecipes.includes(recipe.recipeId))
+        loadRecipes();
+        //window.location.reload();
     }
 
 
@@ -531,6 +559,9 @@ const CollectionDetailPage = () => {
 
     return (
         <div className="collection-detail-page">
+            <button className="back-button" onClick={() => navigate(-1)}>
+                &larr; Назад
+            </button>
             <Snackbar
                 open={openSnackbar}
                 autoHideDuration={6000}
@@ -629,7 +660,7 @@ const CollectionDetailPage = () => {
                             <CardMedia
                                 component="img"
                                 height="200"
-                                image={recipe.recipe.imageUrl || 'img/default-img.jpg'}
+                                image={recipe.recipe.imageUrl || '/img/default-img.jpg'}
                                 alt={recipe.recipe.title}
                             />
                             <CardContent onClick={() => navigate(`/recipes/${recipe.recipe.id}`)}>

@@ -181,7 +181,7 @@ const EditProfileModal = ({ open, onClose, user }) => {
                     </div>
 
                     <form onSubmit={handleSubmit}>
-                        <div className="avatar-upload">
+                        {/* <div className="avatar-upload">
                             <Avatar
                                 src={avatar || undefined}
                                 sx={{ width: 100, height: 100 }}
@@ -200,7 +200,7 @@ const EditProfileModal = ({ open, onClose, user }) => {
                                     Изменить фото
                                 </Button>
                             </label>
-                        </div>
+                        </div> */}
 
                         <TextField
                             label="Имя пользователя"
@@ -211,7 +211,7 @@ const EditProfileModal = ({ open, onClose, user }) => {
                             required
                         />
 
-                        <TextField
+                        {/* <TextField
                             label="О себе"
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
@@ -219,7 +219,7 @@ const EditProfileModal = ({ open, onClose, user }) => {
                             margin="normal"
                             multiline
                             rows={4}
-                        />
+                        /> */}
 
                         <div className="modal-actions">
                             <Button

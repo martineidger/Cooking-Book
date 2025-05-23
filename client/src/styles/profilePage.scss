@@ -299,6 +299,24 @@ $gray-medium: #dfe4ea;
 $gray-dark: #a4b0be;
 $primary-pale: #ffb8b8;
 
+.back-button {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: rgba(#ff6b6b, 0.1);
+    }
+}
+
 .profile-page {
     max-width: 1200px;
     margin: 0 auto;

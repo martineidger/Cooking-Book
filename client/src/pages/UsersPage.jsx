@@ -56,11 +56,12 @@ const UsersPage = () => {
                                 <div className="user-avatar">
                                     {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                                 </div>
+                                {console.log(221, user)}
                                 <div className="user-info">
-                                    <h3>{user.name || user.email}</h3>
+                                    <h3>{user.username || user.email}</h3>
                                     <div className="user-stats">
-                                        <span>{user.recipesCount || 0} рецептов</span>
-                                        <span>{user.savedRecipesCount || 0} сохранений</span>
+                                        <span>{user._count.recipes || 0} рецептов</span><span>|</span>
+                                        <span>{user._count.collections || 0} коллекций</span>
                                     </div>
                                 </div>
                             </Link>

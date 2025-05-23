@@ -10,7 +10,8 @@ const cuisinesData = [
     'Индийская',
     'Тайская',
     'Грузинская',
-    'Американская'
+    'Американская',
+    'Другие'
 ];
 
 export async function seedCuisines(prisma: PrismaClient) {
